@@ -1,0 +1,83 @@
+﻿using Humanizer;
+using System.Text;
+
+namespace EntityCreator;
+
+public class PermissionProviderUpdater(string @namespace, string path)
+{
+    public bool Update(string entityName)
+    {
+        entityName = entityName.Dehumanize();
+
+        string projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
+        string artifactName = $"{projectName}PermissionDefinitionProvider";
+        string groupName = entityName.Pluralize();
+        string folder = $"{path}\\src\\{@namespace}.Application.Contracts\\Permissions";
+        string filename = $"{folder}\\{artifactName}.cs";
+        string manager = $"{projectName}Permissions.{groupName}";
+        string localizer = $"Permission:{groupName}";
+        string obj = $"{groupName.Camelize()}Permission";
+
+        if (!File.Exists(filename))
+            return false;
+
+        StringBuilder stringBuilder = new();
+
+        using StreamReader reader = new(filename);
+        string line = reader.ReadLine();
+        
+        while (line != null)
+        {
+            stringBuilder.AppendLine(line);
+
+            if (line.Contains("var myGroup = context.AddGroup"))
+            {
+                stringBuilder
+                    .AppendLine()
+                    .Append("\t\tvar ")
+                    .Append(obj)
+                    .Append(" = myGroup.AddPermission(")
+                    .Append(manager)
+                    .Append(".Default, L(\"")
+                    .Append(localizer)
+                    .AppendLine("\"));");
+                    
+                stringBuilder
+                    .Append("\t\t")
+                    .Append(obj)
+                    .Append(".AddChild(")
+                    .Append(manager)
+                    .Append(".Create, L(\"")
+                    .Append(localizer)
+                    .AppendLine(".Create\"));");
+
+                stringBuilder
+                    .Append("\t\t")
+                    .Append(obj)
+                    .Append(".AddChild(")
+                    .Append(manager)
+                    .Append(".Edit, L(\"")
+                    .Append(localizer)
+                    .AppendLine(".Edit\"));");
+
+                stringBuilder
+                    .Append("\t\t")
+                    .Append(obj)
+                    .Append(".AddChild(")
+                    .Append(manager)
+                    .Append(".Delete, L(\"")
+                    .Append(localizer)
+                    .AppendLine(".Delete\"));");
+            }
+
+            line = reader.ReadLine();
+        }
+
+        reader.Dispose();
+
+        File.WriteAllText(filename, stringBuilder.ToString());
+
+        return true;
+    }
+
+}
