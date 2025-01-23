@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EntityCreator;
+﻿namespace EntityCreator;
 
 public class PropertyModel
 {
@@ -13,4 +7,6 @@ public class PropertyModel
     public string Type { get; set; }
     public int Size { get; set; }
     public bool IsRequired { get; set; }
+    public bool IsCollection { get; set; }
+    public List<PropertyModel>? Properties { get; set; }
 }

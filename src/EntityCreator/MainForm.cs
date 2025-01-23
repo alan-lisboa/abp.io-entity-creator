@@ -5,10 +5,11 @@ namespace EntityCreator
     public partial class MainForm : Form
     {
         public List<PropertyModel> Properties { get; set; }
+
         public MainForm()
         {
             InitializeComponent();
-            Properties = new List<PropertyModel>();
+            Properties = [];
         }
 
         private void Button1_Click(object sender, EventArgs e)
@@ -51,7 +52,7 @@ namespace EntityCreator
 
             var model = propertyForm.Model;
 
-            if (model == null)
+            if (string.IsNullOrEmpty(model.Name))
                 return;
 
             model.Index = Properties.Count + 1;

@@ -116,11 +116,11 @@
             // 
             // listBox1
             // 
+            listBox1.Font = new Font("Courier New", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             listBox1.FormattingEnabled = true;
-            listBox1.ItemHeight = 15;
             listBox1.Location = new Point(12, 262);
             listBox1.Name = "listBox1";
-            listBox1.Size = new Size(410, 124);
+            listBox1.Size = new Size(410, 116);
             listBox1.TabIndex = 8;
             // 
             // button3
