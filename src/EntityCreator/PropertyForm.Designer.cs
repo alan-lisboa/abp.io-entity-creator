@@ -41,6 +41,7 @@
             button4 = new Button();
             button3 = new Button();
             listBox1 = new ListBox();
+            label5 = new Label();
             SuspendLayout();
             // 
             // button2
@@ -73,7 +74,7 @@
             // 
             comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1.FormattingEnabled = true;
-            comboBox1.Items.AddRange(new object[] { "string", "int", "long", "Guid", "decimal", "float", "double", "DateTime", "TimeSpan", "Entity", "ValueObject", "AgregatedRoot *" });
+            comboBox1.Items.AddRange(new object[] { "string", "int", "long", "Guid", "decimal", "float", "double", "DateTime", "TimeSpan", "Entity", "ValueObject", "AggregatedRoot" });
             comboBox1.Location = new Point(12, 95);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(256, 23);
@@ -170,11 +171,21 @@
             listBox1.TabIndex = 17;
             listBox1.Visible = false;
             // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(12, 391);
+            label5.Name = "label5";
+            label5.Size = new Size(66, 15);
+            label5.TabIndex = 21;
+            label5.Text = "* Never plu";
+            // 
             // PropertyForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(492, 432);
+            Controls.Add(label5);
             Controls.Add(label4);
             Controls.Add(button4);
             Controls.Add(button3);
@@ -212,5 +223,6 @@
         private Button button4;
         private Button button3;
         private ListBox listBox1;
+        private Label label5;
     }
 }

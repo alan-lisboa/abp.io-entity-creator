@@ -78,7 +78,7 @@
             // 
             comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1.FormattingEnabled = true;
-            comboBox1.Items.AddRange(new object[] { "string", "int", "long", "Guid", "decimal", "float", "double", "DateTime", "TimeSpan", "Entity", "ValueObject" });
+            comboBox1.Items.AddRange(new object[] { "string", "int", "long", "Guid", "decimal", "float", "double", "DateTime", "TimeSpan" });
             comboBox1.Location = new Point(12, 91);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(256, 23);

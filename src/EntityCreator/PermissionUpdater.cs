@@ -25,9 +25,7 @@ public class PermissionUpdater(string @namespace, string path)
         
         while (line != null)
         {
-            stringBuilder.AppendLine(line);
-
-            if (line.Contains("public const string GroupName"))
+            if (line.TrimEnd() == "}")
             {
                 stringBuilder
                     .AppendLine()
@@ -45,6 +43,8 @@ public class PermissionUpdater(string @namespace, string path)
                 stringBuilder.AppendLine("\t\tpublic const string Delete = Default + \".Delete\";");
                 stringBuilder.AppendLine("\t}");
             }
+
+            stringBuilder.AppendLine(line);
 
             line = reader.ReadLine();
         }

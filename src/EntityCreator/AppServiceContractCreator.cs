@@ -27,6 +27,7 @@ public class AppServiceContractCreator(string @namespace, string path)
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Volo.Abp.Application.Dtos;")
             .AppendLine("using Volo.Abp.Application.Services;")
+            .AppendLine($"using {@namespace}.{groupName}.Dtos;")
             .AppendLine();
 
         stringBuilder
@@ -42,14 +43,11 @@ public class AppServiceContractCreator(string @namespace, string path)
             .Append(artifactName)
             .AppendLine(" :")
             .AppendLine("\tICrudAppService<")
-            .Append("\t\t")
-            .Append(entityName)
-            .AppendLine("Dto,")
+            .AppendLine($"\t\t{entityName}Dto,")
             .AppendLine("\t\tGuid,")
-            .AppendLine("\t\tPagedAndSortedResultRequestDto,")
-            .Append("\t\tCreateUpdate")
-            .Append(entityName)
-            .AppendLine("Dto>");
+            .AppendLine($"\t\t{entityName}GetListInputDto,")
+            .AppendLine($"\t\tCreateUpdate{entityName}Dto,")
+            .AppendLine($"\t\tCreateUpdate{entityName}Dto>");
 
         stringBuilder.AppendLine("{");
 

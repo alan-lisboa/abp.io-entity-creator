@@ -85,63 +85,73 @@ namespace EntityCreator
             string path = textBox2.Text;
             string entity = textBox3.Text;
 
-            //Create Domain Model (Domain)
+            // Domain ------------------------------
+
+            //Create Domain Model
             ModelCreator modelCreator = new(@namespace, path);
             modelCreator.Create(entity, Properties);
 
-            //Create IRepositry Contract (Domain, only for advanced mode)
-            //RepositoryContractCreator repositoryContractCreator = new(@namespace, path);
-            //repositoryContractCreator.Create(entity);
+            //Create IRepositry Contract
+            RepositoryContractCreator repositoryContractCreator = new(@namespace, path);
+            repositoryContractCreator.Create(entity);
+
+            // EF ------------------------------
 
             //Update EntityFramework Context
             EFContextUpdater efContextUpdater = new(@namespace, path);
             efContextUpdater.Update(entity, Properties);
 
-            //Create Repositry (EF,only for advanced mode)
+            //Create Repositry 
+            EFRepositoryCreator efRepositoryCreator = new(@namespace, path);
+            efRepositoryCreator.Create(entity);
 
-            //Create Domain Contract (Contracts)
-            DomainContractCreator domainContractCreator = new(@namespace, path);
-            domainContractCreator.Create(entity, Properties);
+            // Contracts ------------------------------
 
-            //Create CreateUpdate Contract (Contracts)
-            EditContractCreator editContractCreator = new(@namespace, path);
-            editContractCreator.Create(entity, Properties);
+            //Create Dtos
+            DtosCreator dtosCreator = new(@namespace, path);
+            dtosCreator.Create(entity, Properties);
 
-            //Create IAppService Contract (Contracts)
+            //Create IAppService Contract 
             AppServiceContractCreator appServiceContractCreator = new(@namespace, path);
             appServiceContractCreator.Create(entity);
 
-            //Create Permission Contract (Contracts)
+            ////Create Permission Contract 
             PermissionUpdater permissionUpdater = new(@namespace, path);
             permissionUpdater.Update(entity);
 
-            //Define Permissions in provider
+            ////Define Permissions in provider
             PermissionProviderUpdater permissionProviderUpdater = new(@namespace, path);
             permissionProviderUpdater.Update(entity);
 
-            //Create AppService (Application)
-            AppServiceCreator appServiceCreator = new(@namespace, path);
-            appServiceCreator.Create(entity);
+            // Application ------------------------------
 
-            //Create AutoMapper (Application)
-            AppMapperUpdater appMapperUpdater = new(@namespace, path);
-            appMapperUpdater.Update(entity);
+            ////Create AppService (Application)
+            //AppServiceCreator appServiceCreator = new(@namespace, path);
+            //appServiceCreator.Create(entity);
 
-            //Create Index Page (Web)
-            IndexPageCreator indexPageCreator = new(@namespace, path);
-            indexPageCreator.Create(entity);
+            ////Create AutoMapper (Application)
+            //AppMapperUpdater appMapperUpdater = new(@namespace, path);
+            //appMapperUpdater.Update(entity);
 
-            //Create Index JS (Web)
-            IndexJsCreator indexJsCreator = new(@namespace, path);
-            indexJsCreator.Create(entity, Properties);
+            // Web ------------------------------
 
-            //Create EditModal (Web)
-            EditModalCreator editModalCreator = new(@namespace, path);
-            editModalCreator.Create(entity);
+            ////Create ViewModels 
 
-            //Create CreateModal (Web)
-            CreateModalCreator createModalCreator = new(@namespace, path);
-            createModalCreator.Create(entity);
+            ////Create Index Page 
+            //IndexPageCreator indexPageCreator = new(@namespace, path);
+            //indexPageCreator.Create(entity);
+
+            ////Create Index JS 
+            //IndexJsCreator indexJsCreator = new(@namespace, path);
+            //indexJsCreator.Create(entity, Properties);
+
+            ////Create EditModal 
+            //EditModalCreator editModalCreator = new(@namespace, path);
+            //editModalCreator.Create(entity);
+
+            ////Create CreateModal 
+            //CreateModalCreator createModalCreator = new(@namespace, path);
+            //createModalCreator.Create(entity);
 
             MessageBox.Show("Files Generated!\r\n" +
                 "Don't forget to execute 'dotnet ef migrations' to add updates");

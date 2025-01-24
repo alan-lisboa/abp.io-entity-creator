@@ -20,11 +20,14 @@ public class EFContextUpdater(string @namespace, string path)
 
         StringBuilder stringBuilder = new();
 
+        bool modelCreating = false;
+
         using StreamReader reader = new(filename);
         string line = reader.ReadLine();
+        
         while (line != null)
         {
-            if (line.Contains("#region Entities from the modules"))
+            if (line.Contains($"public {artifactName}"))
             {
                 stringBuilder
                     .Append("\tpublic DbSet<")
@@ -35,32 +38,34 @@ public class EFContextUpdater(string @namespace, string path)
                     .AppendLine();
             }
 
-            stringBuilder.AppendLine(line);
+            if (line.Contains("protected override void OnModelCreating"))
+                modelCreating = true;
 
-            if (line.Contains("/* Configure your own tables/entities inside here */"))
+            if (line.TrimEnd().EndsWith("}") && modelCreating)
             {
                 stringBuilder.AppendLine();
 
                 stringBuilder
                     .Append("\t\tbuilder.Entity<")
                     .Append(entityName)
-                    .AppendLine(">(e =>")
+                    .AppendLine(">(b =>")
                     .AppendLine("\t\t{")
-                    .Append("\t\t\te.ToTable(")
+                    .Append("\t\t\tb.ToTable(")
                     .Append(projectName)
                     .Append("Consts.DbTablePrefix + \"")
                     .Append(groupName)
                     .Append("\", ")
                     .Append(projectName)
                     .AppendLine("Consts.DbSchema);")
-                    .AppendLine("\t\t\te.ConfigureByConvention();");
+                    .AppendLine("\t\t\tb.ConfigureByConvention();");
 
                 foreach (var property in properties)
                 {
+                    // required
                     if (property.Size > 0 || property.IsRequired)
                     {
                         stringBuilder
-                            .Append("\t\t\te.Property(p => p.")
+                            .Append("\t\t\tb.Property(x => x.")
                             .Append(property.Name)
                             .Append(')');
                         
@@ -81,12 +86,65 @@ public class EFContextUpdater(string @namespace, string path)
                         stringBuilder
                             .AppendLine(";");
                     }
+
+                    // ValueObejct
+                    if (property.Type == "ValueObject")
+                    {
+                        if (property.IsCollection)
+                        {
+                            stringBuilder
+                                .Append("\t\t\tb.OwnsMany(x => x.")
+                                .Append(property.Name.Pluralize())
+                                .Append(')')
+                                .Append(".ToTable(")
+                                .Append(projectName)
+                                .Append("Consts.DbTablePrefix + \"")
+                                .Append(property.Name.Pluralize())
+                                .Append("\", ")
+                                .Append(projectName)
+                                .AppendLine("Consts.DbSchema);");
+                        }
+                        else
+                        {
+                            stringBuilder
+                                .Append("\t\t\tb.OwnsOne(x => x.")
+                                .Append(property.Name)
+                                .AppendLine(");");
+                        }
+                    }
+
+                    // Entities
+                    if (property.Type == "Entity" || property.Type == "AggregatedRoot")
+                    {
+                        if (property.IsCollection)
+                        {
+                            stringBuilder
+                                .Append("\t\t\tb.HasMany(x => x.")
+                                .Append(property.Name.Pluralize())
+                                .Append(')')
+                                .Append(".WithOne()")
+                                .Append(".HasForeignKey(\"")
+                                .Append(entityName)
+                                .AppendLine("Id\");");
+                        }
+                        else
+                        {
+                            stringBuilder
+                                .Append("\t\t\tb.HasOne(x => x.")
+                                .Append(property.Name)
+                                .AppendLine(");");
+                        }
+                    }
                 }
 
                 stringBuilder
                     .AppendLine("\t\t});")
                     .AppendLine();
+
+                modelCreating = false;
             }
+
+            stringBuilder.AppendLine(line);
 
             line = reader.ReadLine();
         }

@@ -26,11 +26,14 @@ public class PermissionProviderUpdater(string @namespace, string path)
         using StreamReader reader = new(filename);
         string line = reader.ReadLine();
         
+        bool foundGroup = false;
+
         while (line != null)
         {
-            stringBuilder.AppendLine(line);
+            if (line.Contains("var myGroup = "))
+                foundGroup = true;
 
-            if (line.Contains("var myGroup = context.AddGroup"))
+            if (line.TrimEnd().EndsWith("}") && foundGroup)
             {
                 stringBuilder
                     .AppendLine()
@@ -68,7 +71,11 @@ public class PermissionProviderUpdater(string @namespace, string path)
                     .Append(".Delete, L(\"")
                     .Append(localizer)
                     .AppendLine(".Delete\"));");
+
+                foundGroup = false;
             }
+
+            stringBuilder.AppendLine(line);
 
             line = reader.ReadLine();
         }
