@@ -95,7 +95,7 @@ namespace EntityCreator
             RepositoryContractCreator repositoryContractCreator = new(@namespace, path);
             repositoryContractCreator.Create(entity);
 
-            ////Create Localization terms
+            //Create Localization terms
             var localizationUpdater = new LocalizationUpdater(@namespace, path);
             localizationUpdater.Update(entity, Properties);
 
@@ -151,11 +151,11 @@ namespace EntityCreator
             MvcIndexPageCreator indexPageCreator = new(@namespace, path);
             indexPageCreator.Create(entity, Properties);
 
-            ////Create EditModal 
+            //Create EditModal 
             MvcEditModalCreator editModalCreator = new(@namespace, path);
             editModalCreator.Create(entity);
 
-            ////Create CreateModal 
+            //Create CreateModal 
             MvcCreateModalCreator createModalCreator = new(@namespace, path);
             createModalCreator.Create(entity);
 
