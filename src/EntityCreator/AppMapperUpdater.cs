@@ -15,7 +15,7 @@ public class AppMapperUpdater(string @namespace, string path)
         string folder = $"{path}\\src\\{@namespace}.Application";
         string filename = $"{folder}\\{artifactName}.cs";
         string entityDto = $"{entityName}Dto";
-        string createDto = $"CreateUpdate{entityName}Dto";
+        string createUpdateDto = $"CreateUpdate{entityName}Dto";
 
         if (!File.Exists(filename))
             return false;
@@ -28,6 +28,13 @@ public class AppMapperUpdater(string @namespace, string path)
         string line = reader.ReadLine();
         while (line != null)
         {
+            if (line.Contains("using AutoMapper;"))
+            {
+                stringBuilder
+                    .AppendLine($"using {@namespace}.{groupName};")
+                    .AppendLine($"using {@namespace}.{groupName}.Dtos;");
+            }
+
             if (line.Contains('}') && !added)
             {
                 added = true;
@@ -41,13 +48,8 @@ public class AppMapperUpdater(string @namespace, string path)
 
                 stringBuilder
                     .Append("\t\tCreateMap")
-                    .Append($"<{createDto}, {entityName}>")
-                    .AppendLine("();");
-
-                stringBuilder
-                    .Append("\t\tCreateMap")
-                    .Append($"<{entityDto}, {createDto}>")
-                    .AppendLine("();");
+                    .Append($"<{createUpdateDto}, {entityName}>")
+                    .AppendLine("(MemberList.Source);");
             }
 
             stringBuilder.AppendLine(line);

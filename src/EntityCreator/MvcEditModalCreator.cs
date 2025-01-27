@@ -3,21 +3,18 @@ using System.Text;
 
 namespace EntityCreator;
 
-public class EditModalCreator(string @namespace, string path)
+public class MvcEditModalCreator(string @namespace, string path)
 {
-    private string entityName;
-    private string projectName;
-    private string groupName;
-    private string folder;
-    private string permissions;
-    private string htmlPage;
-    private string modelPage;
-    private string appServiceName;
-    private string iAppService;
-    private string appService;
-    private string entityDto;
-    private string createDto;
-    private string mapper;
+    private string? entityName;
+    private string? projectName;
+    private string? groupName;
+    private string? folder;
+    private string? htmlFile;
+    private string? modelFile;
+    private string? appServiceName;
+    private string? entityDto;
+    private string? createDto;
+    private string? viewModel;
 
     public bool Create(string entityName)
     {
@@ -25,49 +22,48 @@ public class EditModalCreator(string @namespace, string path)
 
         projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
         groupName = entityName.Pluralize();
-        folder = $"{path}\\src\\{@namespace}.Web\\Pages\\{groupName}";
-        htmlPage = $"{folder}\\EditModal.cshtml";
-        modelPage = $"{folder}\\EditModalModel.chtml.cs";
-        permissions = $"{projectName}Permissions.{groupName}";
+        folder = $"{path}\\src\\{@namespace}.Web\\Pages\\{groupName}\\{this.entityName}";
+        htmlFile = $"{folder}\\EditModal.cshtml";
+        modelFile = $"{folder}\\EditModalModel.chtml.cs";
         appServiceName = $"{entityName}AppService";
-        iAppService = $"I{appServiceName}";
-        appService = $"_{appServiceName.Camelize()}";
         entityDto = $"{entityName}Dto";
         createDto = $"CreateUpdate{entityName}Dto";
-        mapper = $"{projectName}WebAutoMapperProfile";
+        viewModel = $"CreateEdit{entityName}ViewModel";
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
 
-        if (!CreateWeb())
+        if (!CreatePage())
             return false;
 
         if (!CreateModel())
             return false;
 
-        UpdateMapper();
-
         return true;
     }
 
-    private bool CreateWeb()
+    private bool CreatePage()
     {
-        if (File.Exists(htmlPage))
+        if (File.Exists(htmlFile))
             return false;
 
         StringBuilder stringBuilder = new();
 
+        // usings
         stringBuilder
             .AppendLine("@page")
             .AppendLine($"@using {@namespace}.Localization")
-            .AppendLine($"@using {@namespace}.Web.Pages.{groupName}")
-            .AppendLine("@using Microsoft.Extensions.Localization")
-            .AppendLine("@using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Modal")
-            .AppendLine("@model EditModalModel");
+            .AppendLine("@using Microsoft.AspNetCore.Mvc.Localization")
+            .AppendLine("@using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Modal");
 
+        // inject
         stringBuilder
-            .Append("@inject IStringLocalizer")
+            .Append("@inject IHtmlLocalizer")
             .AppendLine($"<{projectName}Resource> L");
+
+        // model
+        stringBuilder
+            .AppendLine($"@model {@namespace}.Web.Pages.{groupName}.{entityName}.EditModalModel");
 
         stringBuilder
             .AppendLine("@{")
@@ -76,11 +72,12 @@ public class EditModalCreator(string @namespace, string path)
 
         stringBuilder
             .Append("<abp-dynamic-form ")
-            .Append($"abp-model=\"{entityName}\" ")
-            .AppendLine($"asp-page=\"/{groupName}/EditModal\">");
+            .Append("abp-model=\"ViewModel\" ")
+            .Append("data-ajaxForm=\"true\" ")
+            .AppendLine($"asp-page=\"EditModal\">");
 
         stringBuilder.AppendLine("\t<abp-modal>");
-        stringBuilder.AppendLine("\t\t<abp-modal-header title=\"@L[\"Update\"].Value\"></abp-modal-header>");
+        stringBuilder.AppendLine($"\t\t<abp-modal-header title=\"@L[\"Edit{entityName}\"].Value\"></abp-modal-header>");
         stringBuilder.AppendLine("\t\t<abp-modal-body>");
         stringBuilder.AppendLine("\t\t\t<abp-input asp-for=\"Id\" />");
         stringBuilder.AppendLine("\t\t\t<abp-form-content />");
@@ -89,18 +86,19 @@ public class EditModalCreator(string @namespace, string path)
             .Append("\t\t<abp-modal-footer ")
             .Append("buttons=\"@(AbpModalButtons.Cancel|AbpModalButtons.Save)\">")
             .AppendLine("</abp-modal-footer>");
+
         stringBuilder.AppendLine("\t</abp-modal>");
 
         stringBuilder.AppendLine("</abp-dynamic-form>");
 
-        File.WriteAllText(htmlPage, stringBuilder.ToString());
+        File.WriteAllText(htmlFile, stringBuilder.ToString());
 
         return true;
     }
 
     private bool CreateModel()
     {
-        if (File.Exists(modelPage))
+        if (File.Exists(modelFile))
             return false;
 
         StringBuilder stringBuilder = new();
@@ -110,10 +108,12 @@ public class EditModalCreator(string @namespace, string path)
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Microsoft.AspNetCore.Mvc;")
             .AppendLine($"using {@namespace}.{groupName};")
+            .AppendLine($"using {@namespace}.{groupName}.Dtos;")
+            .AppendLine($"using {@namespace}.Web.Pages.{groupName}.{entityName}.ViewModels;")
             .AppendLine();
 
         stringBuilder
-            .AppendLine($"namespace {@namespace}.Web.Pages.{groupName};")
+            .AppendLine($"namespace {@namespace}.Web.Pages.{groupName}.{entityName};")
             .AppendLine();
 
         stringBuilder
@@ -131,83 +131,41 @@ public class EditModalCreator(string @namespace, string path)
 
         stringBuilder
             .AppendLine("\t[BindProperty]")
-            .Append($"\tpublic {createDto} {entityName} ")
+            .Append($"\tpublic {viewModel} ViewModel ")
             .AppendLine("{ get; set; }")
             .AppendLine();
 
         stringBuilder
-            .AppendLine($"\tprivate readonly {iAppService} {appService};")
+            .AppendLine($"\tprivate readonly I{appServiceName} _service;")
             .AppendLine();
 
         stringBuilder
             .Append("\tpublic EditModalModel")
-            .AppendLine($"({iAppService} {appServiceName.Camelize()})")
+            .AppendLine($"(I{appServiceName} service)")
             .AppendLine("\t{")
-            .AppendLine($"\t\t{appService} = {appServiceName.Camelize()};")
+            .AppendLine($"\t\t_service = service;")
             .AppendLine("\t}")
             .AppendLine();
 
         stringBuilder
             .AppendLine("\tpublic async Task OnGetAsync()")
             .AppendLine("\t{")
-            .Append($"\t\tvar {entityDto.Camelize()} = ")
-            .AppendLine($"await {appService}.GetAsync(Id);")
-            .Append($"\t\t{entityName} = ObjectMapper.Map")
-            .Append($"<{entityDto}, {createDto}>")
-            .AppendLine($"({entityDto.Camelize()});")
+            .AppendLine("\t\tvar dto = await _service.GetAsync(Id);")
+            .AppendLine($"\t\tViewModel = ObjectMapper.Map<{entityDto}, {viewModel}>(dto);")
             .AppendLine("\t}");
 
         stringBuilder
             .AppendLine("\tpublic async Task<IActionResult> OnPostAsync()")
             .AppendLine("\t{")
-            .Append($"\t\tawait {appService}.")
-            .AppendLine($"UpdateAsync(Id, {entityName});")
+            .AppendLine($"\t\tvar dto = ObjectMapper.Map<{viewModel}, {createDto}>(ViewModel);")
+            .AppendLine($"\t\tawait _service.UpdateAsync(Id, dto);")
             .AppendLine("\t\treturn NoContent();")
             .AppendLine("\t}");
 
         stringBuilder
             .AppendLine("}");
 
-        File.WriteAllText(modelPage, stringBuilder.ToString());
-
-        return true;
-    }
-
-    private bool UpdateMapper()
-    {
-        string filename = $"{folder}\\{mapper}.cs";
-
-        if (!File.Exists(filename))
-            return false;
-
-        bool added = false;
-
-        StringBuilder stringBuilder = new();
-
-        using StreamReader reader = new(filename);
-        string line = reader.ReadLine();
-        while (line != null)
-        {
-            if (line.Contains('}') && !added)
-            {
-                added = true;
-
-                stringBuilder.AppendLine();
-
-                stringBuilder
-                    .Append("\t\tCreateMap")
-                    .Append($"<{entityDto}, {createDto}>")
-                    .AppendLine("();");
-            }
-
-            stringBuilder.AppendLine(line);
-
-            line = reader.ReadLine();
-        }
-
-        reader.Dispose();
-
-        File.WriteAllText(filename, stringBuilder.ToString());
+        File.WriteAllText(modelFile, stringBuilder.ToString());
 
         return true;
     }

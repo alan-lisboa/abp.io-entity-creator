@@ -95,6 +95,10 @@ namespace EntityCreator
             RepositoryContractCreator repositoryContractCreator = new(@namespace, path);
             repositoryContractCreator.Create(entity);
 
+            ////Create Localization terms
+            var localizationUpdater = new LocalizationUpdater(@namespace, path);
+            localizationUpdater.Update(entity, Properties);
+
             // EF ------------------------------
 
             //Update EntityFramework Context
@@ -115,46 +119,48 @@ namespace EntityCreator
             AppServiceContractCreator appServiceContractCreator = new(@namespace, path);
             appServiceContractCreator.Create(entity);
 
-            ////Create Permission Contract 
+            //Create Permission Contract 
             PermissionUpdater permissionUpdater = new(@namespace, path);
             permissionUpdater.Update(entity);
 
-            ////Define Permissions in provider
+            //Define Permissions in provider
             PermissionProviderUpdater permissionProviderUpdater = new(@namespace, path);
             permissionProviderUpdater.Update(entity);
 
             // Application ------------------------------
 
-            ////Create AppService (Application)
-            //AppServiceCreator appServiceCreator = new(@namespace, path);
-            //appServiceCreator.Create(entity);
+            //Create AppService (Application)
+            AppServiceCreator appServiceCreator = new(@namespace, path);
+            appServiceCreator.Create(entity, Properties);
 
-            ////Create AutoMapper (Application)
-            //AppMapperUpdater appMapperUpdater = new(@namespace, path);
-            //appMapperUpdater.Update(entity);
+            //Create AutoMapper (Application)
+            AppMapperUpdater appMapperUpdater = new(@namespace, path);
+            appMapperUpdater.Update(entity);
 
-            // Web ------------------------------
+            // Mvc ------------------------------
 
-            ////Create ViewModels 
+            //Menus
+            MvcMenuUpdater mvcMenuUpdater = new(@namespace, path);
+            mvcMenuUpdater.Update(entity);
 
-            ////Create Index Page 
-            //IndexPageCreator indexPageCreator = new(@namespace, path);
-            //indexPageCreator.Create(entity);
+            //Create View Models
+            MvcViewModelCreator mvcViewModelCreator = new(@namespace, path);
+            mvcViewModelCreator.Create(entity, Properties);
 
-            ////Create Index JS 
-            //IndexJsCreator indexJsCreator = new(@namespace, path);
-            //indexJsCreator.Create(entity, Properties);
+            //Create Index Page 
+            MvcIndexPageCreator indexPageCreator = new(@namespace, path);
+            indexPageCreator.Create(entity, Properties);
 
             ////Create EditModal 
-            //EditModalCreator editModalCreator = new(@namespace, path);
-            //editModalCreator.Create(entity);
+            MvcEditModalCreator editModalCreator = new(@namespace, path);
+            editModalCreator.Create(entity);
 
             ////Create CreateModal 
-            //CreateModalCreator createModalCreator = new(@namespace, path);
-            //createModalCreator.Create(entity);
+            MvcCreateModalCreator createModalCreator = new(@namespace, path);
+            createModalCreator.Create(entity);
 
-            MessageBox.Show("Files Generated!\r\n" +
-                "Don't forget to execute 'dotnet ef migrations' to add updates");
+            MessageBox.Show("Files Generated!\r\n\r\n" +
+                "Don't forget to run 'dotnet ef migrations' to add updates");
         }
     }
 }

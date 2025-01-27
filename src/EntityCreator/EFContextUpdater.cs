@@ -5,14 +5,31 @@ namespace EntityCreator;
 
 public class EFContextUpdater(string @namespace, string path)
 {
+    string entityName;
+    string projectName;
+    string groupName;
+    string folder;
+    List<PropertyModel> properties;
+
     public bool Update(string entityName, List<PropertyModel> properties)
     {
-        entityName = entityName.Dehumanize();
+        this.entityName = entityName.Dehumanize();
+        this.properties = properties;
 
-        string projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
+        projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
+        groupName = entityName.Pluralize();
+        folder = $"{path}\\src\\{@namespace}.EntityFrameworkCore\\EntityFrameworkCore";
+
+        UpdateContext();
+
+        UpdateModule();
+
+        return true;
+    }
+
+    public bool UpdateContext()
+    {
         string artifactName = $"{projectName}DbContext";
-        string groupName = entityName.Pluralize();
-        string folder = $"{path}\\src\\{@namespace}.EntityFrameworkCore\\EntityFrameworkCore";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!File.Exists(filename))
@@ -21,12 +38,21 @@ public class EFContextUpdater(string @namespace, string path)
         StringBuilder stringBuilder = new();
 
         bool modelCreating = false;
+        bool isUsing = true;
 
         using StreamReader reader = new(filename);
         string line = reader.ReadLine();
         
         while (line != null)
         {
+            if (!line.Contains("using") && isUsing)
+            {
+                stringBuilder
+                    .AppendLine($"using {@namespace}.{groupName};");
+
+                isUsing = false;
+            }
+
             if (line.Contains($"public {artifactName}"))
             {
                 stringBuilder
@@ -149,6 +175,59 @@ public class EFContextUpdater(string @namespace, string path)
             line = reader.ReadLine();
         }
         
+        reader.Dispose();
+
+        File.WriteAllText(filename, stringBuilder.ToString());
+
+        return true;
+    }
+
+    public bool UpdateModule()
+    {
+        string artifactName = $"{projectName}EntityFrameworkCoreModule";
+        string filename = $"{folder}\\{artifactName}.cs";
+
+        if (!File.Exists(filename))
+            return false;
+
+        StringBuilder stringBuilder = new();
+
+        bool addedRepository = false;
+        bool isUsing = true;
+
+        using StreamReader reader = new(filename);
+        string line = reader.ReadLine();
+
+        while (line != null)
+        {
+            if (!line.Contains("using") && isUsing)
+            {
+                stringBuilder
+                    .AppendLine($"using {@namespace}.{groupName};");
+
+                isUsing = false;
+            }
+
+            if (line.Contains("options.AddRepository"))
+                addedRepository = true;
+
+            if (line.TrimEnd().EndsWith("});") && addedRepository)
+            {
+                stringBuilder
+                    .Append("\t\t\toptions.AddRepository")
+                    .Append($"<{entityName}")
+                    .Append(", ")
+                    .Append($"{entityName}Repository>")
+                    .AppendLine("();");
+
+                addedRepository = false;
+            }
+
+            stringBuilder.AppendLine(line);
+
+            line = reader.ReadLine();
+        }
+
         reader.Dispose();
 
         File.WriteAllText(filename, stringBuilder.ToString());

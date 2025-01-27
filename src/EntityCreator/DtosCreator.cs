@@ -53,7 +53,7 @@ public class DtosCreator(string @namespace, string path)
             .Append(@namespace)
             .Append('.')
             .Append(groupName)
-            .AppendLine(";")
+            .AppendLine(".Dtos;")
             .AppendLine();
 
         stringBuilder
@@ -208,7 +208,10 @@ public class DtosCreator(string @namespace, string path)
 
         foreach (var property in properties)
         {
-            if (property.Type == "Entity" || property.Type == "ValueObject" || property.Type == "AggregateRoot")
+            if (property.Type == "Entity" || 
+                property.Type == "ValueObject" || 
+                property.Type == "AggregateRoot" || 
+                property.IsCollection)
                 continue;
 
             if (property.IsRequired)

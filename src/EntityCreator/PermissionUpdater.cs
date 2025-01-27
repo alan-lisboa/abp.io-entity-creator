@@ -30,7 +30,7 @@ public class PermissionUpdater(string @namespace, string path)
                 stringBuilder
                     .AppendLine()
                     .Append("\tpublic static class ")
-                    .AppendLine(groupName)
+                    .AppendLine(entityName)
                     .AppendLine("\t{");
                     
                 stringBuilder
