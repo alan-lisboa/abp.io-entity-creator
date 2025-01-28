@@ -112,6 +112,8 @@ namespace EntityCreator
                             .AppendLine("\t\t\ticon: \"fa-solid fa-bars-staggered\",")
                             .AppendLine("\t\t\torder: 6")
                             .AppendLine("\t\t);")
+                            .AppendLine()
+                            .AppendLine("\t\tcontext.Menu.AddItem(application);")
                             .AppendLine();
                     }
 
@@ -120,8 +122,8 @@ namespace EntityCreator
                         .AppendLine($"\t\t\tnew ApplicationMenuItem(")
                         .Append($"\t\t\t\t{projectName}Menus.{entityName}, ")
                         .Append($"l[\"Menu:{entityName}\"], ")
-                        .Append($"url: \"/{entityName}\", ")
-                        .AppendLine($"icon: \"fa fa-globe\"")
+                        .Append($"url: \"/{groupName}/{entityName}\", ")
+                        .AppendLine($"icon: \"fa-solid fa-arrow-up-right-from-square\"")
                         .AppendLine("\t\t\t)")
                         .Append("\t\t).RequirePermissions(")
                         .Append($"{projectName}Permissions.")

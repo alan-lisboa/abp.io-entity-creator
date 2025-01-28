@@ -103,11 +103,11 @@ public class EFContextUpdater(string @namespace, string path)
                                 .Append(')');
                         }
 
-                        if (property.IsRequired)
-                        {
-                            stringBuilder
-                                .Append(".IsRequired()");
-                        }
+                        //if (property.IsRequired)
+                        //{
+                        //    stringBuilder
+                        //        .Append(".IsRequired()");
+                        //}
 
                         stringBuilder
                             .AppendLine(";");

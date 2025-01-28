@@ -35,7 +35,7 @@ public class PermissionUpdater(string @namespace, string path)
                     
                 stringBuilder
                     .Append("\t\tpublic const string Default = GroupName + \".")
-                    .Append(groupName)
+                    .Append(entityName)
                     .AppendLine("\";");
 
                 stringBuilder.AppendLine("\t\tpublic const string Create = Default + \".Create\";");

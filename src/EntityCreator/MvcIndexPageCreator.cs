@@ -147,7 +147,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
         stringBuilder
             .Append("\t\t<abp-table ")
             .Append("striped-rows=\"true\" ")
-            .Append($"id=\"{groupName}Table\" ")
+            .Append($"id=\"{entityName}Table\" ")
             .AppendLine("class=\"nowrap\" />");
         
         stringBuilder.AppendLine("\t</abp-card-body>");
@@ -253,7 +253,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
         stringBuilder
             .AppendLine("\tvar getFilter = function () {")
             .AppendLine("\t\tvar input = {};")
-            .AppendLine($"\t\t$(#{entityName}Filter)")
+            .AppendLine($"\t\t$('#{entityName}Filter')")
             .AppendLine("\t\t\t.serializeArray()")
             .AppendLine("\t\t\t.forEach(function (data) {")
             .AppendLine("\t\t\t\tif (data.value != '') {")
@@ -371,6 +371,12 @@ public class MvcIndexPageCreator(string @namespace, string path)
         // Properties
         foreach (var property in properties)
         {
+            if (property.IsCollection || 
+                property.Type == "Entity" || 
+                property.Type == "ValueObject" || 
+                property.Type == "AggregateRoot")
+                continue;
+
             stringBuilder.AppendLine(",");
 
             stringBuilder
