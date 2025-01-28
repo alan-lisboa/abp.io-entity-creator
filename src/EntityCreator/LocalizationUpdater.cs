@@ -84,8 +84,20 @@ namespace EntityCreator
                         .AppendLine($"\"{entityName}\",");
 
                     stringBuilder
+                        .Append($"{indent}\"Permission:{entityName}.Create\": ")
+                        .AppendLine("\"Create\",");
+
+                    stringBuilder
+                        .Append($"{indent}\"Permission:{entityName}.Edit\": ")
+                        .AppendLine("\"Edit\",");
+
+                    stringBuilder
+                        .Append($"{indent}\"Permission:{entityName}.Delete\": ")
+                        .AppendLine("\"Delete\",");
+
+                    stringBuilder
                         .Append($"{indent}\"Menu:{entityName}\": ")
-                        .AppendLine($"\"Menu{entityName}\",");
+                        .AppendLine($"\"{groupName}\",");
 
                     stringBuilder
                         .Append($"{indent}\"{entityName}\": ")
@@ -101,16 +113,16 @@ namespace EntityCreator
 
                         stringBuilder
                             .Append($"{indent}\"{entityName}{property.Name}\": ")
-                            .AppendLine($"\"{entityName}{property.Name}\",");
+                            .AppendLine($"\"{property.Name}\",");
                     }
 
                     stringBuilder
                         .Append($"{indent}\"Create{entityName}\": ")
-                        .AppendLine($"\"Create{entityName}\",");
+                        .AppendLine($"\"Create\",");
 
                     stringBuilder
                         .Append($"{indent}\"Edit{entityName}\": ")
-                        .AppendLine($"\"Edit{entityName}\",");
+                        .AppendLine($"\"Edit\",");
 
                     stringBuilder
                         .Append($"{indent}\"{entityName}DeletionConfirmationMessage\": ")

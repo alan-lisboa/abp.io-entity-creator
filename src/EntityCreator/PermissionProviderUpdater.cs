@@ -14,8 +14,8 @@ public class PermissionProviderUpdater(string @namespace, string path)
         string groupName = entityName.Pluralize();
         string folder = $"{path}\\src\\{@namespace}.Application.Contracts\\Permissions";
         string filename = $"{folder}\\{artifactName}.cs";
-        string manager = $"{projectName}Permissions.{groupName}";
-        string localizer = $"Permission:{groupName}";
+        string permissions = $"{projectName}Permissions.{entityName}";
+        string localizer = $"Permission:{entityName}";
         string obj = $"{groupName.Camelize()}Permission";
 
         if (!File.Exists(filename))
@@ -40,7 +40,7 @@ public class PermissionProviderUpdater(string @namespace, string path)
                     .Append("\t\tvar ")
                     .Append(obj)
                     .Append(" = myGroup.AddPermission(")
-                    .Append(manager)
+                    .Append(permissions)
                     .Append(".Default, L(\"")
                     .Append(localizer)
                     .AppendLine("\"));");
@@ -49,7 +49,7 @@ public class PermissionProviderUpdater(string @namespace, string path)
                     .Append("\t\t")
                     .Append(obj)
                     .Append(".AddChild(")
-                    .Append(manager)
+                    .Append(permissions)
                     .Append(".Create, L(\"")
                     .Append(localizer)
                     .AppendLine(".Create\"));");
@@ -58,7 +58,7 @@ public class PermissionProviderUpdater(string @namespace, string path)
                     .Append("\t\t")
                     .Append(obj)
                     .Append(".AddChild(")
-                    .Append(manager)
+                    .Append(permissions)
                     .Append(".Edit, L(\"")
                     .Append(localizer)
                     .AppendLine(".Edit\"));");
@@ -67,7 +67,7 @@ public class PermissionProviderUpdater(string @namespace, string path)
                     .Append("\t\t")
                     .Append(obj)
                     .Append(".AddChild(")
-                    .Append(manager)
+                    .Append(permissions)
                     .Append(".Delete, L(\"")
                     .Append(localizer)
                     .AppendLine(".Delete\"));");

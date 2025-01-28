@@ -15,7 +15,7 @@ public class AppServiceCreator(string @namespace, string path)
         string groupName = entityName.Pluralize();
         string folder = $"{path}\\src\\{@namespace}.Application\\{groupName}";
         string filename = $"{folder}\\{artifactName}.cs";
-        string permissions = $"{projectName}Permissions.{groupName}";
+        string permissions = $"{projectName}Permissions.{entityName}";
         string entityDto = $"{entityName}Dto";
         string createUpdateDto = $"CreateUpdate{entityName}Dto";
         string getListDto = $"{entityName}GetListInputDto";
@@ -126,7 +126,7 @@ public class AppServiceCreator(string @namespace, string path)
                 .Append($"{property.Name}")
                 .Append(".IsNullOrWhiteSpace(), x => x.")
                 .Append($"{property.Name}.Contains(")
-                .Append($"input.{property.Name}))");
+                .AppendLine($"input.{property.Name}))");
         }
 
         stringBuilder

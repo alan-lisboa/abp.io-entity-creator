@@ -109,7 +109,7 @@ namespace EntityCreator
                             .AppendLine("\t\tvar application = new ApplicationMenuItem(")
                             .AppendLine($"\t\t\t{projectName}Menus.Application,")
                             .AppendLine("\t\t\tl[\"Menu:Application\"],")
-                            .AppendLine("\t\t\ticon: \"fa-solid fa-bars-staggered\"")
+                            .AppendLine("\t\t\ticon: \"fa-solid fa-bars-staggered\",")
                             .AppendLine("\t\t\torder: 6")
                             .AppendLine("\t\t);")
                             .AppendLine();
@@ -117,15 +117,17 @@ namespace EntityCreator
 
                     stringBuilder
                         .AppendLine("\t\tapplication.AddItem(")
-                        .Append($"\t\t\tnew ApplicationMenuItem(")
-                        .Append($"{projectName}Menus.{entityName}, ")
+                        .AppendLine($"\t\t\tnew ApplicationMenuItem(")
+                        .Append($"\t\t\t\t{projectName}Menus.{entityName}, ")
                         .Append($"l[\"Menu:{entityName}\"], ")
                         .Append($"url: \"/{entityName}\", ")
-                        .AppendLine($"icon: \"fa fa-globe\")")
+                        .AppendLine($"icon: \"fa fa-globe\"")
+                        .AppendLine("\t\t\t)")
                         .Append("\t\t).RequirePermissions(")
                         .Append($"{projectName}Permissions.")
                         .Append(entityName)
-                        .AppendLine(".Default);");
+                        .AppendLine(".Default);")
+                        .AppendLine();
                 }
 
                 stringBuilder.AppendLine(line);

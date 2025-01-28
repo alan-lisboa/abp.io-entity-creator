@@ -157,7 +157,7 @@ public class DtosCreator(string @namespace, string path)
                 .Append("\tpublic ")
                 .Append(propertyType)
                 .Append(' ').Append(property.Name)
-                .Append(" { get; set; }")
+                .AppendLine(" { get; set; }")
                 .AppendLine();
         }
 
@@ -213,26 +213,6 @@ public class DtosCreator(string @namespace, string path)
                 property.Type == "AggregateRoot" || 
                 property.IsCollection)
                 continue;
-
-            if (property.IsRequired)
-            {
-                stringBuilder
-                    .AppendLine("\t[Required]");
-            }
-
-            if (property.Type.Equals("string", StringComparison.OrdinalIgnoreCase) && property.Size > 0)
-            {
-                stringBuilder
-                    .Append("\t[StringLength(")
-                    .Append(property.Size)
-                    .AppendLine(")]");
-            }
-
-            if (property.Type.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
-            {
-                stringBuilder
-                    .AppendLine("\t[DataType(DataType.Date)]");
-            }
 
             string propertyType = property.Type;
 

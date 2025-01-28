@@ -169,6 +169,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
         stringBuilder
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Microsoft.AspNetCore.Mvc.RazorPages;")
+            .AppendLine($"using {@namespace}.Web.Pages.{groupName}.{entityName}.ViewModels;")
             .AppendLine();
 
         stringBuilder
