@@ -1,24 +1,16 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class EFContextUpdater(string @namespace, string path)
+public class EFContextUpdater(EntityModel entity)
 {
-    string entityName;
-    string projectName;
-    string groupName;
-    string folder;
-    List<PropertyModel> properties;
+    string? folder;
 
-    public bool Update(string entityName, List<PropertyModel> properties)
+    public bool Update()
     {
-        this.entityName = entityName.Dehumanize();
-        this.properties = properties;
-
-        projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-        groupName = entityName.Pluralize();
-        folder = $"{path}\\src\\{@namespace}.EntityFrameworkCore\\EntityFrameworkCore";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.EntityFrameworkCore\\EntityFrameworkCore";
 
         UpdateContext();
 
@@ -29,7 +21,7 @@ public class EFContextUpdater(string @namespace, string path)
 
     public bool UpdateContext()
     {
-        string artifactName = $"{projectName}DbContext";
+        string artifactName = $"{entity.ProjectName}DbContext";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!File.Exists(filename))
@@ -41,14 +33,14 @@ public class EFContextUpdater(string @namespace, string path)
         bool isUsing = true;
 
         using StreamReader reader = new(filename);
-        string line = reader.ReadLine();
+        string line = reader.ReadLine()!;
         
         while (line != null)
         {
             if (!line.Contains("using") && isUsing)
             {
                 stringBuilder
-                    .AppendLine($"using {@namespace}.{groupName};");
+                    .AppendLine($"using {entity.Namespace}.{entity.Pluralized};");
 
                 isUsing = false;
             }
@@ -57,9 +49,9 @@ public class EFContextUpdater(string @namespace, string path)
             {
                 stringBuilder
                     .Append("\tpublic DbSet<")
-                    .Append(entityName)
+                    .Append(entity.Name)
                     .Append("> ")
-                    .Append(groupName)
+                    .Append(entity.Pluralized)
                     .AppendLine(" { get; set; }")
                     .AppendLine();
             }
@@ -73,19 +65,19 @@ public class EFContextUpdater(string @namespace, string path)
 
                 stringBuilder
                     .Append("\t\tbuilder.Entity<")
-                    .Append(entityName)
+                    .Append(entity.Name)
                     .AppendLine(">(b =>")
                     .AppendLine("\t\t{")
                     .Append("\t\t\tb.ToTable(")
-                    .Append(projectName)
+                    .Append(entity.ProjectName)
                     .Append("Consts.DbTablePrefix + \"")
-                    .Append(groupName)
+                    .Append(entity.Pluralized)
                     .Append("\", ")
-                    .Append(projectName)
+                    .Append(entity.ProjectName)
                     .AppendLine("Consts.DbSchema);")
                     .AppendLine("\t\t\tb.ConfigureByConvention();");
 
-                foreach (var property in properties)
+                foreach (var property in entity.Properties!)
                 {
                     // required
                     if (property.Size > 0 || property.IsRequired)
@@ -103,12 +95,6 @@ public class EFContextUpdater(string @namespace, string path)
                                 .Append(')');
                         }
 
-                        //if (property.IsRequired)
-                        //{
-                        //    stringBuilder
-                        //        .Append(".IsRequired()");
-                        //}
-
                         stringBuilder
                             .AppendLine(";");
                     }
@@ -123,11 +109,11 @@ public class EFContextUpdater(string @namespace, string path)
                                 .Append(property.Name.Pluralize())
                                 .Append(')')
                                 .Append(".ToTable(")
-                                .Append(projectName)
+                                .Append(entity.ProjectName)
                                 .Append("Consts.DbTablePrefix + \"")
                                 .Append(property.Name.Pluralize())
                                 .Append("\", ")
-                                .Append(projectName)
+                                .Append(entity.ProjectName)
                                 .AppendLine("Consts.DbSchema);");
                         }
                         else
@@ -150,7 +136,7 @@ public class EFContextUpdater(string @namespace, string path)
                                 .Append(')')
                                 .Append(".WithOne()")
                                 .Append(".HasForeignKey(\"")
-                                .Append(entityName)
+                                .Append(entity.Name)
                                 .AppendLine("Id\");");
                         }
                         else
@@ -172,7 +158,7 @@ public class EFContextUpdater(string @namespace, string path)
 
             stringBuilder.AppendLine(line);
 
-            line = reader.ReadLine();
+            line = reader.ReadLine()!;
         }
         
         reader.Dispose();
@@ -184,7 +170,7 @@ public class EFContextUpdater(string @namespace, string path)
 
     public bool UpdateModule()
     {
-        string artifactName = $"{projectName}EntityFrameworkCoreModule";
+        string artifactName = $"{entity.ProjectName}EntityFrameworkCoreModule";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!File.Exists(filename))
@@ -196,14 +182,14 @@ public class EFContextUpdater(string @namespace, string path)
         bool isUsing = true;
 
         using StreamReader reader = new(filename);
-        string line = reader.ReadLine();
+        string line = reader.ReadLine()!;
 
         while (line != null)
         {
             if (!line.Contains("using") && isUsing)
             {
                 stringBuilder
-                    .AppendLine($"using {@namespace}.{groupName};");
+                    .AppendLine($"using {entity.Namespace}.{entity.Pluralized};");
 
                 isUsing = false;
             }
@@ -215,9 +201,9 @@ public class EFContextUpdater(string @namespace, string path)
             {
                 stringBuilder
                     .Append("\t\t\toptions.AddRepository")
-                    .Append($"<{entityName}")
+                    .Append($"<{entity.Name}")
                     .Append(", ")
-                    .Append($"{entityName}Repository>")
+                    .Append($"{entity.Name}Repository>")
                     .AppendLine("();");
 
                 addedRepository = false;
@@ -225,7 +211,7 @@ public class EFContextUpdater(string @namespace, string path)
 
             stringBuilder.AppendLine(line);
 
-            line = reader.ReadLine();
+            line = reader.ReadLine()!;
         }
 
         reader.Dispose();

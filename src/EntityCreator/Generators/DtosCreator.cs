@@ -1,21 +1,16 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class DtosCreator(string @namespace, string path)
+public class DtosCreator(EntityModel entity)
 {
-    private string entityName;
-    private List<PropertyModel> properties;
-    private string groupName;
-    private string folder;
+    private string? folder;
 
-    public bool Create(string entityName, List<PropertyModel> properties)
+    public bool Create()
     {
-        this.entityName = entityName.Dehumanize();
-        this.properties = properties;
-        this.groupName = entityName.Pluralize();
-        this.folder = $"{path}\\src\\{@namespace}.Application.Contracts\\{groupName}\\Dtos";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\{entity.Pluralized}\\Dtos";
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
@@ -34,9 +29,7 @@ public class DtosCreator(string @namespace, string path)
 
     public bool CreateDomainDto()
     {
-        entityName = entityName.Dehumanize();
-
-        string artifactName = $"{entityName}Dto";
+        string artifactName = $"{entity.Name}Dto";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (File.Exists(filename))
@@ -50,9 +43,9 @@ public class DtosCreator(string @namespace, string path)
 
         stringBuilder
             .Append("namespace ")
-            .Append(@namespace)
+            .Append(entity.Namespace)
             .Append('.')
-            .Append(groupName)
+            .Append(entity.Pluralized)
             .AppendLine(".Dtos;")
             .AppendLine();
 
@@ -63,14 +56,16 @@ public class DtosCreator(string @namespace, string path)
 
         stringBuilder.AppendLine("{");
 
-        foreach (var property in properties)
+        foreach (var property in entity.Properties!)
         {
-            if (property.Type == "Entity" || property.Type == "ValueObject" || property.Type == "AggregateRoot")
+            if (property.Type == BaseTypes.Entity || 
+                property.Type == BaseTypes.ValueObject || 
+                property.Type == BaseTypes.AggregatedRoot)
                 continue;
 
-            string propertyType = property.Type;
+            string propertyType = property.Type!;
 
-            if (!property.IsRequired && propertyType == "string")
+            if (!property.IsRequired && propertyType == BaseTypes.String)
                 propertyType += "?";
 
             stringBuilder
@@ -90,11 +85,11 @@ public class DtosCreator(string @namespace, string path)
 
     private bool CreateUpdateDto()
     {
-        string artifactName = $"CreateUpdate{entityName}Dto";
+        string artifactName = $"CreateUpdate{entity.Name}Dto";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+            Directory.CreateDirectory(folder!);
 
         if (File.Exists(filename))
             return false;
@@ -108,9 +103,9 @@ public class DtosCreator(string @namespace, string path)
 
         stringBuilder
             .Append("namespace ")
-            .Append(@namespace)
+            .Append(entity.Namespace)
             .Append('.')
-            .Append(groupName)
+            .Append(entity.Pluralized)
             .AppendLine(".Dtos;")
             .AppendLine();
 
@@ -123,9 +118,11 @@ public class DtosCreator(string @namespace, string path)
 
         stringBuilder.AppendLine("{");
 
-        foreach (var property in properties)
+        foreach (var property in entity.Properties!)
         {
-            if (property.Type == "Entity" || property.Type == "ValueObject" || property.Type == "AggregateRoot")
+            if (property.Type == BaseTypes.Entity || 
+                property.Type == BaseTypes.ValueObject || 
+                property.Type == BaseTypes.AggregatedRoot)
                 continue;
 
             if (property.IsRequired)
@@ -134,7 +131,7 @@ public class DtosCreator(string @namespace, string path)
                     .AppendLine("\t[Required]");
             }
 
-            if (property.Type.Equals("string", StringComparison.OrdinalIgnoreCase) && property.Size > 0)
+            if (property.Type!.Equals(BaseTypes.String, StringComparison.OrdinalIgnoreCase) && property.Size > 0)
             {
                 stringBuilder
                     .Append("\t[StringLength(")
@@ -150,7 +147,7 @@ public class DtosCreator(string @namespace, string path)
 
             string propertyType = property.Type;
             
-            if (!property.IsRequired && propertyType == "string")
+            if (!property.IsRequired && propertyType == BaseTypes.String)
                 propertyType += "?";
             
             stringBuilder
@@ -171,11 +168,11 @@ public class DtosCreator(string @namespace, string path)
 
     private bool CreateListInputDto()
     {
-        string artifactName = $"{entityName}GetListInputDto";
+        string artifactName = $"{entity.Name}GetListInputDto";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+            Directory.CreateDirectory(folder!);
 
         if (File.Exists(filename))
             return false;
@@ -190,9 +187,9 @@ public class DtosCreator(string @namespace, string path)
 
         stringBuilder
             .Append("namespace ")
-            .Append(@namespace)
+            .Append(entity.Namespace)
             .Append('.')
-            .Append(groupName)
+            .Append(entity.Pluralized)
             .AppendLine(".Dtos;")
             .AppendLine();
 
@@ -206,15 +203,15 @@ public class DtosCreator(string @namespace, string path)
 
         stringBuilder.AppendLine("{");
 
-        foreach (var property in properties)
+        foreach (var property in entity.Properties!)
         {
-            if (property.Type == "Entity" || 
-                property.Type == "ValueObject" || 
-                property.Type == "AggregateRoot" || 
+            if (property.Type == BaseTypes.Entity || 
+                property.Type == BaseTypes.ValueObject || 
+                property.Type == BaseTypes.AggregatedRoot || 
                 property.IsCollection)
                 continue;
 
-            string propertyType = property.Type;
+            string propertyType = property.Type!;
 
             if (!property.IsRequired && propertyType == "string")
                 propertyType += "?";

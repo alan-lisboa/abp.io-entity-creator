@@ -1,18 +1,15 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class PermissionUpdater(string @namespace, string path)
+public class PermissionUpdater(EntityModel entity)
 {
-    public bool Update(string entityName)
+    public bool Update()
     {
-        entityName = entityName.Dehumanize();
-
-        string projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-        string artifactName = $"{projectName}Permissions";
-        string groupName = entityName.Pluralize();
-        string folder = $"{path}\\src\\{@namespace}.Application.Contracts\\Permissions";
+        string artifactName = $"{entity.ProjectName}Permissions";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Permissions";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!File.Exists(filename))
@@ -21,7 +18,7 @@ public class PermissionUpdater(string @namespace, string path)
         StringBuilder stringBuilder = new();
 
         using StreamReader reader = new(filename);
-        string line = reader.ReadLine();
+        string line = reader.ReadLine()!;
         
         while (line != null)
         {
@@ -30,12 +27,12 @@ public class PermissionUpdater(string @namespace, string path)
                 stringBuilder
                     .AppendLine()
                     .Append("\tpublic static class ")
-                    .AppendLine(entityName)
+                    .AppendLine(entity.Name)
                     .AppendLine("\t{");
                     
                 stringBuilder
                     .Append("\t\tpublic const string Default = GroupName + \".")
-                    .Append(entityName)
+                    .Append(entity.Name)
                     .AppendLine("\";");
 
                 stringBuilder.AppendLine("\t\tpublic const string Create = Default + \".Create\";");
@@ -46,7 +43,7 @@ public class PermissionUpdater(string @namespace, string path)
 
             stringBuilder.AppendLine(line);
 
-            line = reader.ReadLine();
+            line = reader.ReadLine()!;
         }
 
         reader.Dispose();

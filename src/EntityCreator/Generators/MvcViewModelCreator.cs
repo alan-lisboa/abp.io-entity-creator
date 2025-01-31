@@ -1,28 +1,20 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator
+namespace EntityCreator.Generators
 {
-    public class MvcViewModelCreator(string @namespace, string path)
+    public class MvcViewModelCreator(EntityModel entity)
     {
-        private string? entityName;
-        private List<PropertyModel>? properties;
-        private string? projectName;
-        private string? groupName;
         private string? folder;
         private string? folderViewModels;
         private string? mapper;
 
-        public bool Create(string entityName, List<PropertyModel> properties)
+        public bool Create()
         {
-            this.entityName = entityName.Dehumanize();
-            this.properties = properties;
-
-            projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-            groupName = entityName.Pluralize();
-            folder = $"{path}\\src\\{@namespace}.Web";
-            folderViewModels = $"{folder}\\Pages\\{groupName}\\{this.entityName}\\ViewModels";
-            mapper = $"{projectName}WebAutoMapperProfile";
+            folder = $"{entity.Location}\\src\\{entity.Namespace}.Web";
+            folderViewModels = $"{folder}\\Pages\\{entity.Pluralized}\\{entity.Name}\\ViewModels";
+            mapper = $"{entity.ProjectName}WebAutoMapperProfile";
 
             if (!Directory.Exists(folderViewModels))
                 Directory.CreateDirectory(folderViewModels);
@@ -38,7 +30,7 @@ namespace EntityCreator
 
         private bool CreateFilterInputViewModel()
         {
-            string artifactName = $"{entityName}FilterInput";
+            string artifactName = $"{entity.Name}FilterInput";
             string filename = $"{folderViewModels}\\{artifactName}.cs";
 
             if (File.Exists(filename))
@@ -48,16 +40,16 @@ namespace EntityCreator
 
             stringBuilder
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
-                .AppendLine($"using {@namespace}.{groupName};")
+                .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
                 .AppendLine();
 
             stringBuilder
                 .Append("namespace ")
-                .Append(@namespace)
+                .Append(entity.Namespace)
                 .Append(".Web.Pages.")
-                .Append(groupName)
+                .Append(entity.Pluralized)
                 .Append('.')
-                .Append(this.entityName)
+                .Append(entity.Name)
                 .Append(".ViewModels")
                 .AppendLine(";")
                 .AppendLine();
@@ -68,23 +60,29 @@ namespace EntityCreator
                 .AppendLine()
                 .AppendLine("{");
 
-            foreach (var property in properties)
+            foreach (var property in entity.Properties!)
             {
                 if (property.IsCollection || 
-                    property.Type == "Entity" || 
-                    property.Type == "ValueObject" || 
-                    property.Type == "AggregatedRoot")
+                    property.Type == BaseTypes.Entity || 
+                    property.Type == BaseTypes.ValueObject || 
+                    property.Type == BaseTypes.AggregatedRoot)
                     continue;
 
                 stringBuilder
                     .Append("\t[Display(Name = \"")
+                    .Append(entity.Name)
                     .Append(property.Name)
                     .Append("\")]")
                     .AppendLine();
 
                 stringBuilder
                     .Append("\tpublic ")
-                    .Append(property.Type)
+                    .Append(property.Type);
+
+                if (property.Type == BaseTypes.String)
+                    stringBuilder.Append('?');
+
+                stringBuilder
                     .Append(' ')
                     .Append(property.Name)
                     .Append(" { get; set; }")
@@ -100,7 +98,7 @@ namespace EntityCreator
 
         private bool CreateEditViewModel()
         {
-            string artifactName = $"CreateEdit{entityName}ViewModel";
+            string artifactName = $"CreateEdit{entity.Name}ViewModel";
             string filename = $"{folderViewModels}\\{artifactName}.cs";
 
             if (File.Exists(filename))
@@ -112,16 +110,16 @@ namespace EntityCreator
                 .AppendLine("using System;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Form;")
-                .AppendLine($"using {@namespace}.{groupName};")
+                .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
                 .AppendLine();
 
             stringBuilder
                 .Append("namespace ")
-                .Append(@namespace)
+                .Append(entity.Namespace)
                 .Append(".Web.Pages.")
-                .Append(groupName)
+                .Append(entity.Pluralized)
                 .Append('.')
-                .Append(this.entityName)
+                .Append(entity.Name)
                 .Append(".ViewModels")
                 .AppendLine(";")
                 .AppendLine();
@@ -132,12 +130,12 @@ namespace EntityCreator
                 .AppendLine()
                 .AppendLine("{");
 
-            foreach (var property in properties)
+            foreach (var property in entity.Properties!)
             {
                 if (property.IsCollection ||
-                    property.Type == "Entity" ||
-                    property.Type == "ValueObject" ||
-                    property.Type == "AggregatedRoot")
+                    property.Type == BaseTypes.Entity ||
+                    property.Type == BaseTypes.ValueObject ||
+                    property.Type == BaseTypes.AggregatedRoot)
                     continue;
 
                 if (property.IsRequired)
@@ -153,13 +151,19 @@ namespace EntityCreator
 
                 stringBuilder
                     .Append("\t[Display(Name = \"")
+                    .Append(entity.Name)
                     .Append(property.Name)
                     .Append("\")]")
                     .AppendLine();
                 
                 stringBuilder
                     .Append("\tpublic ")
-                    .Append(property.Type)
+                    .Append(property.Type);
+
+                if (property.Type == BaseTypes.String)
+                    stringBuilder.Append('?');
+
+                stringBuilder
                     .Append(' ')
                     .Append(property.Name)
                     .Append(" { get; set; }")
@@ -186,7 +190,7 @@ namespace EntityCreator
             StringBuilder stringBuilder = new();
 
             using StreamReader reader = new(filename);
-            string line = reader.ReadLine();
+            string line = reader.ReadLine()!;
             while (line != null)
             {
                 if (!line.Contains("using") && isUsing)
@@ -195,19 +199,19 @@ namespace EntityCreator
 
                     stringBuilder
                         .Append("using ")
-                        .Append(@namespace)
+                        .Append(entity.Namespace)
                         .Append(".Web.Pages.")
-                        .Append(groupName)
+                        .Append(entity.Pluralized)
                         .Append('.')
-                        .Append(this.entityName)
+                        .Append(entity.Name)
                         .Append(".ViewModels;")
                         .AppendLine();
 
                     stringBuilder
                         .Append("using ")
-                        .Append(@namespace)
+                        .Append(entity.Namespace)
                         .Append('.')
-                        .Append(groupName)
+                        .Append(entity.Pluralized)
                         .Append(".Dtos;")
                         .AppendLine();
                 }
@@ -220,18 +224,18 @@ namespace EntityCreator
 
                     stringBuilder
                         .Append("\t\tCreateMap")
-                        .Append($"<{entityName}Dto, CreateEdit{entityName}ViewModel>")
+                        .Append($"<{entity.Name}Dto, CreateEdit{entity.Name}ViewModel>")
                         .AppendLine("();");
 
                     stringBuilder
                         .Append("\t\tCreateMap")
-                        .Append($"<CreateEdit{entityName}ViewModel, CreateUpdate{entityName}Dto>")
+                        .Append($"<CreateEdit{entity.Name}ViewModel, CreateUpdate{entity.Name}Dto>")
                         .AppendLine("();");
                 }
 
                 stringBuilder.AppendLine(line);
 
-                line = reader.ReadLine();
+                line = reader.ReadLine()!;
             }
 
             reader.Dispose();

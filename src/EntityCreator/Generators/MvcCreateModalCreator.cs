@@ -1,34 +1,26 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class MvcEditModalCreator(string @namespace, string path)
+public class MvcCreateModalCreator(EntityModel entity)
 {
-    private string? entityName;
-    private string? projectName;
-    private string? groupName;
     private string? folder;
     private string? htmlFile;
     private string? modelFile;
     private string? appServiceName;
-    private string? entityDto;
     private string? createDto;
     private string? viewModel;
 
-    public bool Create(string entityName)
+    public bool Create()
     {
-        this.entityName = entityName.Dehumanize();
-
-        projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-        groupName = entityName.Pluralize();
-        folder = $"{path}\\src\\{@namespace}.Web\\Pages\\{groupName}\\{this.entityName}";
-        htmlFile = $"{folder}\\EditModal.cshtml";
-        modelFile = $"{folder}\\EditModalModel.chtml.cs";
-        appServiceName = $"{entityName}AppService";
-        entityDto = $"{entityName}Dto";
-        createDto = $"CreateUpdate{entityName}Dto";
-        viewModel = $"CreateEdit{entityName}ViewModel";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Pages\\{entity.Pluralized}\\{entity.Name}";
+        htmlFile = $"{folder}\\CreateModal.cshtml";
+        modelFile = $"{folder}\\CreateModal.chtml.cs";
+        appServiceName = $"{entity.Name}AppService";
+        createDto = $"CreateUpdate{entity.Name}Dto";
+        viewModel = $"CreateEdit{entity.Name}ViewModel";
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
@@ -52,19 +44,20 @@ public class MvcEditModalCreator(string @namespace, string path)
         // usings
         stringBuilder
             .AppendLine("@page")
-            .AppendLine($"@using {@namespace}.Localization")
             .AppendLine("@using Microsoft.AspNetCore.Mvc.Localization")
-            .AppendLine("@using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Modal");
+            .AppendLine("@using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Modal")
+            .AppendLine($"@using {entity.Namespace}.Localization");
 
         // inject
         stringBuilder
             .Append("@inject IHtmlLocalizer")
-            .AppendLine($"<{projectName}Resource> L");
+            .AppendLine($"<{entity.ProjectName}Resource> L");
 
         // model
         stringBuilder
-            .AppendLine($"@model {@namespace}.Web.Pages.{groupName}.{entityName}.EditModalModel");
+            .AppendLine($"@model {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name}.CreateModalModel");
 
+        // layout
         stringBuilder
             .AppendLine("@{")
             .AppendLine("\tLayout = null;")
@@ -74,24 +67,28 @@ public class MvcEditModalCreator(string @namespace, string path)
             .Append("<abp-dynamic-form ")
             .Append("abp-model=\"ViewModel\" ")
             .Append("data-ajaxForm=\"true\" ")
-            .AppendLine($"asp-page=\"EditModal\">");
+            .AppendLine($"asp-page=\"CreateModal\">");
 
         stringBuilder.AppendLine("\t<abp-modal>");
-        stringBuilder.AppendLine($"\t\t<abp-modal-header title=\"@L[\"Edit{entityName}\"].Value\"></abp-modal-header>");
+        
+        stringBuilder
+            .Append("\t\t<abp-modal-header ")
+            .AppendLine($"title=\"@L[\"Create{entity.Name}\"].Value\"></abp-modal-header>");
+        
         stringBuilder.AppendLine("\t\t<abp-modal-body>");
-        stringBuilder.AppendLine("\t\t\t<abp-input asp-for=\"Id\" />");
         stringBuilder.AppendLine("\t\t\t<abp-form-content />");
         stringBuilder.AppendLine("\t\t</abp-modal-body>");
+        
         stringBuilder
             .Append("\t\t<abp-modal-footer ")
             .Append("buttons=\"@(AbpModalButtons.Cancel|AbpModalButtons.Save)\">")
             .AppendLine("</abp-modal-footer>");
-
+        
         stringBuilder.AppendLine("\t</abp-modal>");
 
         stringBuilder.AppendLine("</abp-dynamic-form>");
 
-        File.WriteAllText(htmlFile, stringBuilder.ToString());
+        File.WriteAllText(htmlFile!, stringBuilder.ToString());
 
         return true;
     }
@@ -103,31 +100,26 @@ public class MvcEditModalCreator(string @namespace, string path)
 
         StringBuilder stringBuilder = new();
 
+        // usings
         stringBuilder
-            .AppendLine("using System;")
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Microsoft.AspNetCore.Mvc;")
-            .AppendLine($"using {@namespace}.{groupName};")
-            .AppendLine($"using {@namespace}.{groupName}.Dtos;")
-            .AppendLine($"using {@namespace}.Web.Pages.{groupName}.{entityName}.ViewModels;")
+            .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
+            .AppendLine($"using {entity.Namespace}.{entity.Pluralized}.Dtos;")
+            .AppendLine($"using {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name}.ViewModels;")
+            .AppendLine();
+
+        // namespace
+        stringBuilder
+            .AppendLine($"namespace {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name};")
             .AppendLine();
 
         stringBuilder
-            .AppendLine($"namespace {@namespace}.Web.Pages.{groupName}.{entityName};")
-            .AppendLine();
-
-        stringBuilder
-            .Append("public class EditModalModel : ")
-            .AppendLine($"{projectName}PageModel");
+            .Append("public class CreateModalModel : ")
+            .AppendLine($"{entity.ProjectName}PageModel");
 
         stringBuilder
             .AppendLine("{");
-
-        stringBuilder
-            .AppendLine("\t[HiddenInput]")
-            .AppendLine("\t[BindProperty(SupportsGet = true)]")
-            .AppendLine("\tpublic Guid Id { get; set; }")
-            .AppendLine();
 
         stringBuilder
             .AppendLine("\t[BindProperty]")
@@ -140,7 +132,7 @@ public class MvcEditModalCreator(string @namespace, string path)
             .AppendLine();
 
         stringBuilder
-            .Append("\tpublic EditModalModel")
+            .Append("\tpublic CreateModalModel")
             .AppendLine($"(I{appServiceName} service)")
             .AppendLine("\t{")
             .AppendLine($"\t\t_service = service;")
@@ -148,24 +140,17 @@ public class MvcEditModalCreator(string @namespace, string path)
             .AppendLine();
 
         stringBuilder
-            .AppendLine("\tpublic async Task OnGetAsync()")
-            .AppendLine("\t{")
-            .AppendLine("\t\tvar dto = await _service.GetAsync(Id);")
-            .AppendLine($"\t\tViewModel = ObjectMapper.Map<{entityDto}, {viewModel}>(dto);")
-            .AppendLine("\t}");
-
-        stringBuilder
-            .AppendLine("\tpublic async Task<IActionResult> OnPostAsync()")
+            .AppendLine("\tpublic virtual async Task<IActionResult> OnPostAsync()")
             .AppendLine("\t{")
             .AppendLine($"\t\tvar dto = ObjectMapper.Map<{viewModel}, {createDto}>(ViewModel);")
-            .AppendLine($"\t\tawait _service.UpdateAsync(Id, dto);")
+            .AppendLine("\t\tawait _service.CreateAsync(dto);")
             .AppendLine("\t\treturn NoContent();")
             .AppendLine("\t}");
 
         stringBuilder
             .AppendLine("}");
 
-        File.WriteAllText(modelFile, stringBuilder.ToString());
+        File.WriteAllText(modelFile!, stringBuilder.ToString());
 
         return true;
     }

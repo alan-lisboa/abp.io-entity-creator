@@ -1,22 +1,19 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class PermissionProviderUpdater(string @namespace, string path)
+public class PermissionProviderUpdater(EntityModel entity)
 {
-    public bool Update(string entityName)
+    public bool Update()
     {
-        entityName = entityName.Dehumanize();
-
-        string projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-        string artifactName = $"{projectName}PermissionDefinitionProvider";
-        string groupName = entityName.Pluralize();
-        string folder = $"{path}\\src\\{@namespace}.Application.Contracts\\Permissions";
+        string artifactName = $"{entity.ProjectName}PermissionDefinitionProvider";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Permissions";
         string filename = $"{folder}\\{artifactName}.cs";
-        string permissions = $"{projectName}Permissions.{entityName}";
-        string localizer = $"Permission:{entityName}";
-        string obj = $"{groupName.Camelize()}Permission";
+        string permissions = $"{entity.ProjectName}Permissions.{entity.Name}";
+        string localizer = $"Permission:{entity.Name}";
+        string obj = $"{entity.Pluralized.Camelize()}Permission";
 
         if (!File.Exists(filename))
             return false;
@@ -24,7 +21,7 @@ public class PermissionProviderUpdater(string @namespace, string path)
         StringBuilder stringBuilder = new();
 
         using StreamReader reader = new(filename);
-        string line = reader.ReadLine();
+        string line = reader.ReadLine()!;
         
         bool foundGroup = false;
 
@@ -33,7 +30,7 @@ public class PermissionProviderUpdater(string @namespace, string path)
             if (line.Contains("var myGroup = "))
                 foundGroup = true;
 
-            if (line.TrimEnd().EndsWith("}") && foundGroup)
+            if (line.TrimEnd().EndsWith('}') && foundGroup)
             {
                 stringBuilder
                     .AppendLine()
@@ -77,7 +74,7 @@ public class PermissionProviderUpdater(string @namespace, string path)
 
             stringBuilder.AppendLine(line);
 
-            line = reader.ReadLine();
+            line = reader.ReadLine()!;
         }
 
         reader.Dispose();

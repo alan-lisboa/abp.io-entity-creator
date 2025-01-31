@@ -1,25 +1,20 @@
-﻿using Humanizer;
-using System;
+﻿using EntityCreator.Models;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class AppServiceCreator(string @namespace, string path)
+public class AppServiceCreator(EntityModel entity)
 {
-    public bool Create(string entityName, List<PropertyModel> properties)
+    public bool Create()
     {
-        entityName = entityName.Dehumanize();
-
-        string projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-        string artifactName = $"{entityName}AppService";
-        string groupName = entityName.Pluralize();
-        string folder = $"{path}\\src\\{@namespace}.Application\\{groupName}";
+        string artifactName = $"{entity.Name}AppService";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application\\{entity.Pluralized}";
         string filename = $"{folder}\\{artifactName}.cs";
-        string permissions = $"{projectName}Permissions.{entityName}";
-        string entityDto = $"{entityName}Dto";
-        string createUpdateDto = $"CreateUpdate{entityName}Dto";
-        string getListDto = $"{entityName}GetListInputDto";
-        string irepository = $"I{entityName}Repository";
+        string permissions = $"{entity.ProjectName}Permissions.{entity.Name}";
+        string entityDto = $"{entity.Name}Dto";
+        string createUpdateDto = $"CreateUpdate{entity.Name}Dto";
+        string getListDto = $"{entity.Name}GetListInputDto";
+        string irepository = $"I{entity.Name}Repository";
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
@@ -38,12 +33,12 @@ public class AppServiceCreator(string @namespace, string path)
             .AppendLine("using Volo.Abp.Application.Dtos;")
             .AppendLine("using Volo.Abp.Application.Services;")
             .AppendLine("using Volo.Abp.Domain.Repositories;")
-            .AppendLine($"using {@namespace}.{groupName}.Dtos;")
-            .AppendLine($"using {@namespace}.Permissions;")
+            .AppendLine($"using {entity.Namespace}.{entity.Pluralized}.Dtos;")
+            .AppendLine($"using {entity.Namespace}.Permissions;")
             .AppendLine();
 
         stringBuilder
-            .AppendLine($"namespace {@namespace}.{groupName};")
+            .AppendLine($"namespace {entity.Namespace}.{entity.Pluralized};")
             .AppendLine();
 
         // class
@@ -53,7 +48,7 @@ public class AppServiceCreator(string @namespace, string path)
         stringBuilder
             .AppendLine($"public class {artifactName} :")
             .AppendLine("\tCrudAppService<")
-            .AppendLine($"\t\t{entityName}, ")
+            .AppendLine($"\t\t{entity.Name}, ")
             .AppendLine($"\t\t{entityDto}, ")
             .AppendLine("\t\tGuid, ")
             .AppendLine($"\t\t{getListDto}, ")
@@ -105,7 +100,7 @@ public class AppServiceCreator(string @namespace, string path)
         // methods
         stringBuilder
             .Append("\tprotected override async Task<IQueryable<")
-            .Append($"{entityName}>>" )
+            .Append($"{entity.Name}>>" )
             .Append("CreateFilteredQueryAsync(")
             .AppendLine($"{getListDto} input)")
             .AppendLine("\t{");
@@ -113,24 +108,30 @@ public class AppServiceCreator(string @namespace, string path)
         stringBuilder
             .AppendLine("\t\treturn (await base.CreateFilteredQueryAsync(input))");
 
-        foreach (var property in properties)
+        var whereif = false;
+
+        foreach (var property in entity.Properties!)
         {
-            if (property.Type == "Entity" || 
-                property.Type == "ValueObject" || 
-                property.Type == "AggregatedRoot" || 
-                property.IsCollection)
+            if (property.Type != BaseTypes.String)
                 continue;
+
+            if (!whereif)
+                whereif = true;
+            else
+                stringBuilder.AppendLine();
 
             stringBuilder
                 .Append("\t\t\t.WhereIf(!input.")
                 .Append($"{property.Name}")
                 .Append(".IsNullOrWhiteSpace(), x => x.")
-                .Append($"{property.Name}.Contains(")
-                .AppendLine($"input.{property.Name}))");
+                .Append($"{property.Name}!.Contains(")
+                .Append($"input.{property.Name}!))");
         }
 
         stringBuilder
-            .AppendLine("\t\t\t;")
+            .AppendLine("\t\t\t;");
+
+        stringBuilder
             .AppendLine("\t}");
 
         stringBuilder.AppendLine("}");

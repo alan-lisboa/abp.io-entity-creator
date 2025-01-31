@@ -1,21 +1,18 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class AppMapperUpdater(string @namespace, string path)
+public class AppMapperUpdater(EntityModel entity)
 {
-    public bool Update(string entityName)
+    public bool Update()
     {
-        entityName = entityName.Dehumanize();
-
-        string projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-        string artifactName = $"{projectName}ApplicationAutoMapperProfile";
-        string groupName = entityName.Pluralize();
-        string folder = $"{path}\\src\\{@namespace}.Application";
+        string artifactName = $"{entity.ProjectName}ApplicationAutoMapperProfile";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application";
         string filename = $"{folder}\\{artifactName}.cs";
-        string entityDto = $"{entityName}Dto";
-        string createUpdateDto = $"CreateUpdate{entityName}Dto";
+        string entityDto = $"{entity.Name}Dto";
+        string createUpdateDto = $"CreateUpdate{entity.Name}Dto";
 
         if (!File.Exists(filename))
             return false;
@@ -25,14 +22,14 @@ public class AppMapperUpdater(string @namespace, string path)
         StringBuilder stringBuilder = new();
 
         using StreamReader reader = new(filename);
-        string line = reader.ReadLine();
+        string line = reader.ReadLine()!;
         while (line != null)
         {
             if (line.Contains("using AutoMapper;"))
             {
                 stringBuilder
-                    .AppendLine($"using {@namespace}.{groupName};")
-                    .AppendLine($"using {@namespace}.{groupName}.Dtos;");
+                    .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
+                    .AppendLine($"using {entity.Namespace}.{entity.Pluralized}.Dtos;");
             }
 
             if (line.Contains('}') && !added)
@@ -43,18 +40,18 @@ public class AppMapperUpdater(string @namespace, string path)
 
                 stringBuilder
                     .Append("\t\tCreateMap")
-                    .Append($"<{entityName}, {entityDto}>")
+                    .Append($"<{entity.Name}, {entityDto}>")
                     .AppendLine("();");
 
                 stringBuilder
                     .Append("\t\tCreateMap")
-                    .Append($"<{createUpdateDto}, {entityName}>")
+                    .Append($"<{createUpdateDto}, {entity.Name}>")
                     .AppendLine("(MemberList.Source);");
             }
 
             stringBuilder.AppendLine(line);
 
-            line = reader.ReadLine();
+            line = reader.ReadLine()!;
         }
 
         reader.Dispose();

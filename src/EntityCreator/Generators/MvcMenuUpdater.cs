@@ -1,26 +1,20 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EntityCreator
+namespace EntityCreator.Generators
 {
-    public class MvcMenuUpdater(string @namespace, string path)
+    public class MvcMenuUpdater(EntityModel entity)
     {
-        private string entityName;
-        private string projectName;
-        private string groupName;
-        private string folder;
+        private string? folder;
 
-        public bool Update(string entityName)
+        public bool Update()
         {
-            this.entityName = entityName.Dehumanize();
-        
-            projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-            groupName = entityName.Pluralize();
-            folder = $"{path}\\src\\{@namespace}.Web\\Menus";
+            folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Menus";
 
             if (!Directory.Exists(folder))
                 return false;
@@ -34,7 +28,7 @@ namespace EntityCreator
 
         private bool UpdateMenu()
         {
-            string artifactName = $"{projectName}Menus";
+            string artifactName = $"{entity.ProjectName}Menus";
             string filename = $"{folder}\\{artifactName}.cs";
 
             if (!File.Exists(filename))
@@ -62,9 +56,9 @@ namespace EntityCreator
 
                     stringBuilder
                         .Append("\tpublic const string ")
-                        .Append(entityName)
+                        .Append(entity.Name)
                         .Append(" = Prefix + \".")
-                        .Append(entityName)
+                        .Append(entity.Name)
                         .AppendLine("\";");
                 }
                 
@@ -82,7 +76,7 @@ namespace EntityCreator
 
         private bool UpdateMenuContributor()
         {
-            string artifactName = $"{projectName}MenuContributor";
+            string artifactName = $"{entity.ProjectName}MenuContributor";
             string filename = $"{folder}\\{artifactName}.cs";
 
             if (!File.Exists(filename))
@@ -107,7 +101,7 @@ namespace EntityCreator
                         stringBuilder
                             .AppendLine("\t\t//Application")
                             .AppendLine("\t\tvar application = new ApplicationMenuItem(")
-                            .AppendLine($"\t\t\t{projectName}Menus.Application,")
+                            .AppendLine($"\t\t\t{entity.ProjectName}Menus.Application,")
                             .AppendLine("\t\t\tl[\"Menu:Application\"],")
                             .AppendLine("\t\t\ticon: \"fa-solid fa-bars-staggered\",")
                             .AppendLine("\t\t\torder: 6")
@@ -120,14 +114,14 @@ namespace EntityCreator
                     stringBuilder
                         .AppendLine("\t\tapplication.AddItem(")
                         .AppendLine($"\t\t\tnew ApplicationMenuItem(")
-                        .Append($"\t\t\t\t{projectName}Menus.{entityName}, ")
-                        .Append($"l[\"Menu:{entityName}\"], ")
-                        .Append($"url: \"/{groupName}/{entityName}\", ")
+                        .Append($"\t\t\t\t{entity.ProjectName}Menus.{entity.Name}, ")
+                        .Append($"l[\"Menu:{entity.Name}\"], ")
+                        .Append($"url: \"/{entity.Pluralized}/{entity.Name}\", ")
                         .AppendLine($"icon: \"fa-solid fa-arrow-up-right-from-square\"")
                         .AppendLine("\t\t\t)")
                         .Append("\t\t).RequirePermissions(")
-                        .Append($"{projectName}Permissions.")
-                        .Append(entityName)
+                        .Append($"{entity.ProjectName}Permissions.")
+                        .Append(entity.Name)
                         .AppendLine(".Default);")
                         .AppendLine();
                 }

@@ -1,17 +1,15 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class AppServiceContractCreator(string @namespace, string path)
+public class AppServiceContractCreator(EntityModel entity)
 {
-    public bool Create(string entityName)
+    public bool Create()
     {
-        entityName = entityName.Dehumanize();
-
-        string artifactName = $"I{entityName}AppService";
-        string groupName = entityName.Pluralize();
-        string folder = $"{path}\\src\\{@namespace}.Application.Contracts\\{groupName}";
+        string artifactName = $"I{entity.Name}AppService";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\{entity.Pluralized}";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!Directory.Exists(folder))
@@ -27,14 +25,14 @@ public class AppServiceContractCreator(string @namespace, string path)
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Volo.Abp.Application.Dtos;")
             .AppendLine("using Volo.Abp.Application.Services;")
-            .AppendLine($"using {@namespace}.{groupName}.Dtos;")
+            .AppendLine($"using {entity.Namespace}.{entity.Pluralized}.Dtos;")
             .AppendLine();
 
         stringBuilder
             .Append("namespace ")
-            .Append(@namespace)
+            .Append(entity.Namespace)
             .Append('.')
-            .Append(groupName)
+            .Append(entity.Pluralized)
             .AppendLine(";")
             .AppendLine();
 
@@ -43,11 +41,11 @@ public class AppServiceContractCreator(string @namespace, string path)
             .Append(artifactName)
             .AppendLine(" :")
             .AppendLine("\tICrudAppService<")
-            .AppendLine($"\t\t{entityName}Dto,")
+            .AppendLine($"\t\t{entity.Name}Dto,")
             .AppendLine("\t\tGuid,")
-            .AppendLine($"\t\t{entityName}GetListInputDto,")
-            .AppendLine($"\t\tCreateUpdate{entityName}Dto,")
-            .AppendLine($"\t\tCreateUpdate{entityName}Dto>");
+            .AppendLine($"\t\t{entity.Name}GetListInputDto,")
+            .AppendLine($"\t\tCreateUpdate{entity.Name}Dto,")
+            .AppendLine($"\t\tCreateUpdate{entity.Name}Dto>");
 
         stringBuilder.AppendLine("{");
 

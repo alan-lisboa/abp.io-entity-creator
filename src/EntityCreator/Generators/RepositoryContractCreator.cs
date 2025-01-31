@@ -1,17 +1,15 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class RepositoryContractCreator(string @namespace, string path)
+public class RepositoryContractCreator(EntityModel entity)
 {
-    public bool Create(string entityName)
+    public bool Create()
     {
-        entityName = entityName.Dehumanize();
-
-        string artifactName = $"I{entityName}Repository";
-        string groupName = entityName.Pluralize();
-        string folder = $"{path}\\src\\{@namespace}.Domain\\{groupName}";
+        string artifactName = $"I{entity.Name}Repository";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Domain\\{entity.Pluralized}";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!Directory.Exists(folder))
@@ -30,9 +28,9 @@ public class RepositoryContractCreator(string @namespace, string path)
         stringBuilder.AppendLine();
         stringBuilder
             .Append("namespace ")
-            .Append(@namespace)
+            .Append(entity.Namespace)
             .Append('.')
-            .Append(groupName)
+            .Append(entity.Pluralized)
             .AppendLine(";")
             .AppendLine();
 
@@ -40,7 +38,7 @@ public class RepositoryContractCreator(string @namespace, string path)
             .Append("public interface ")
             .Append(artifactName)
             .Append(" : IRepository<")
-            .Append(entityName)
+            .Append(entity.Name)
             .AppendLine(", Guid>");
 
         stringBuilder.AppendLine("{");

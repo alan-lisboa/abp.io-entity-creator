@@ -1,26 +1,18 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class MvcIndexPageCreator(string @namespace, string path)
+public class MvcIndexPageCreator(EntityModel entity)
 {
-    private string entityName;
-    private string projectName;
-    private string groupName;
-    private string folder;
-    private string htmlPage;
-    private string modelPage;
-    private List<PropertyModel> properties;
+    private string? folder;
+    private string? htmlPage;
+    private string? modelPage;
 
-    public bool Create(string entityName, List<PropertyModel> properties)
+    public bool Create()
     {
-        this.entityName = entityName.Dehumanize();
-        this.properties = properties;
-
-        projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-        groupName = entityName.Pluralize();
-        folder = $"{path}\\src\\{@namespace}.Web\\Pages\\{groupName}\\{this.entityName}";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Pages\\{entity.Pluralized}\\{entity.Name}";
         htmlPage = $"{folder}\\Index.cshtml";
         modelPage = $"{folder}\\Index.chtml.cs";
         
@@ -52,13 +44,13 @@ public class MvcIndexPageCreator(string @namespace, string path)
         // usings
         stringBuilder
             .AppendLine("@page")
-            .AppendLine($"@using {@namespace}.Permissions")
+            .AppendLine($"@using {entity.Namespace}.Permissions")
             .AppendLine("@using Microsoft.AspNetCore.Authorization")
             .AppendLine("@using Microsoft.AspNetCore.Mvc.Localization")
             .AppendLine("@using Volo.Abp.AspNetCore.Mvc.UI.Layout")
-            .AppendLine($"@using {@namespace}.Web.Pages.{groupName}.{entityName}")
-            .AppendLine($"@using {@namespace}.Localization")
-            .AppendLine($"@using {@namespace}.Web.Menus");
+            .AppendLine($"@using {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name}")
+            .AppendLine($"@using {entity.Namespace}.Localization")
+            .AppendLine($"@using {entity.Namespace}.Web.Menus");
 
         // model
         stringBuilder
@@ -67,29 +59,29 @@ public class MvcIndexPageCreator(string @namespace, string path)
         // injects
         stringBuilder
             .AppendLine("@inject IPageLayout PageLayout")
-            .AppendLine($"@inject IHtmlLocalizer<{projectName}Resource> L")
+            .AppendLine($"@inject IHtmlLocalizer<{entity.ProjectName}Resource> L")
             .AppendLine("@inject IAuthorizationService Authorization");
 
         // code
         stringBuilder
             .AppendLine("@{")
-            .AppendLine($"\tPageLayout.Content.Title = L[\"{entityName}\"].Value;")
-            .AppendLine($"\tPageLayout.Content.BreadCrumb.Add(L[\"Menu:{entityName}\"].Value);")
-            .AppendLine($"\tPageLayout.Content.MenuItemName = {projectName}Menus.{entityName};")
+            .AppendLine($"\tPageLayout.Content.Title = L[\"{entity.Name}\"].Value;")
+            .AppendLine($"\tPageLayout.Content.BreadCrumb.Add(L[\"Menu:{entity.Name}\"].Value);")
+            .AppendLine($"\tPageLayout.Content.MenuItemName = {entity.ProjectName}Menus.{entity.Name};")
             .AppendLine("}");
 
         // scripts
         stringBuilder
             .AppendLine("@section scripts")
             .AppendLine("{")
-            .AppendLine($"\t<abp-script src=\"/Pages/{groupName}/{entityName}/index.js\" />")
+            .AppendLine($"\t<abp-script src=\"/Pages/{entity.Pluralized}/{entity.Name}/index.js\" />")
             .AppendLine("}");
 
         // styles
         stringBuilder
             .AppendLine("@section styles")
             .AppendLine("{")
-            .AppendLine($"\t<abp-style src=\"/Pages/{groupName}/{entityName}/index.css\" />")
+            .AppendLine($"\t<abp-style src=\"/Pages/{entity.Pluralized}/{entity.Name}/index.css\" />")
             .AppendLine("}");
 
         // toolbar
@@ -98,7 +90,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
             .AppendLine("{");
 
         stringBuilder
-            .AppendLine($"\t<abp-button abp-collapse-id=\"{entityName}Collapse\"")
+            .AppendLine($"\t<abp-button abp-collapse-id=\"{entity.Name}Collapse\"")
             .AppendLine("\t\t\t\tbutton-type=\"Light\"")
             .AppendLine("\t\t\t\ticon=\"filter\"")
             .AppendLine("\t\t\t\tclass=\"mx-3\"")
@@ -106,9 +98,9 @@ public class MvcIndexPageCreator(string @namespace, string path)
             .AppendLine();
         
         stringBuilder
-            .AppendLine($"\t@if (await Authorization.IsGrantedAsync({projectName}Permissions.{entityName}.Create))")
+            .AppendLine($"\t@if (await Authorization.IsGrantedAsync({entity.ProjectName}Permissions.{entity.Name}.Create))")
             .AppendLine("\t{")
-            .AppendLine($"\t\t<abp-button id=\"New{entityName}Button\" text=\"@L[\"Create{entityName}\"].Value\"")
+            .AppendLine($"\t\t<abp-button id=\"New{entity.Name}Button\" text=\"@L[\"Create{entity.Name}\"].Value\"")
             .AppendLine($"\t\t\t\t\ticon=\"plus\"")
             .AppendLine($"\t\t\t\t\tbutton-type=\"Primary\" />")
             .AppendLine("\t}");
@@ -124,13 +116,13 @@ public class MvcIndexPageCreator(string @namespace, string path)
         // filter
         stringBuilder
             .Append($"\t\t<abp-dynamic-form ")
-            .Append($"abp-model=\"{entityName}Filter\" ")
-            .Append($"id=\"{entityName}Filter\" ")
+            .Append($"abp-model=\"{entity.Name}Filter\" ")
+            .Append($"id=\"{entity.Name}Filter\" ")
             .Append($"required-symbols=\"false\" ")
             .AppendLine($"column-size=\"_3\">");
 
         stringBuilder
-            .AppendLine($"\t\t\t<abp-collapse-body id=\"{entityName}Collapse\">");
+            .AppendLine($"\t\t\t<abp-collapse-body id=\"{entity.Name}Collapse\">");
 
         stringBuilder
             .AppendLine("\t\t\t\t<abp-form-content />");
@@ -147,14 +139,14 @@ public class MvcIndexPageCreator(string @namespace, string path)
         stringBuilder
             .Append("\t\t<abp-table ")
             .Append("striped-rows=\"true\" ")
-            .Append($"id=\"{entityName}Table\" ")
+            .Append($"id=\"{entity.Name}Table\" ")
             .AppendLine("class=\"nowrap\" />");
         
         stringBuilder.AppendLine("\t</abp-card-body>");
 
         stringBuilder.AppendLine("</abp-card>");
         
-        File.WriteAllText(htmlPage, stringBuilder.ToString());
+        File.WriteAllText(htmlPage!, stringBuilder.ToString());
 
         return true;
     }
@@ -169,11 +161,11 @@ public class MvcIndexPageCreator(string @namespace, string path)
         stringBuilder
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Microsoft.AspNetCore.Mvc.RazorPages;")
-            .AppendLine($"using {@namespace}.Web.Pages.{groupName}.{entityName}.ViewModels;")
+            .AppendLine($"using {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name}.ViewModels;")
             .AppendLine();
 
         stringBuilder
-            .AppendLine($"namespace {@namespace}.Web.Pages.{groupName}.{entityName};")
+            .AppendLine($"namespace {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name};")
             .AppendLine();
 
         stringBuilder
@@ -183,7 +175,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
             .AppendLine("{");
 
         stringBuilder
-            .Append($"\tpublic {entityName}FilterInput {entityName}Filter ")
+            .Append($"\tpublic {entity.Name}FilterInput? {entity.Name}Filter ")
             .AppendLine("{ get; set; }")
             .AppendLine();
 
@@ -196,7 +188,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
         stringBuilder
             .AppendLine("}");
 
-        File.WriteAllText(modelPage, stringBuilder.ToString());
+        File.WriteAllText(modelPage!, stringBuilder.ToString());
 
         return true;
     }
@@ -206,7 +198,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
         string filename = $"{folder}\\index.css";
 
         if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+            Directory.CreateDirectory(folder!);
 
         if (File.Exists(filename))
             return false;
@@ -219,9 +211,9 @@ public class MvcIndexPageCreator(string @namespace, string path)
     private bool CreateScript()
     {
         string filename = $"{folder}\\index.js";
-        string permissions = $"{projectName}.{entityName}";
+        string permissions = $"{entity.ProjectName}.{entity.Name}";
 
-        string[] endpointTree = $"{@namespace}.{groupName}.{entityName}".Split(".");
+        string[] endpointTree = $"{entity.Namespace}.{entity.Pluralized}.{entity.Name}".Split(".");
         string endpoint = "";
 
         for (int i = 0; i < endpointTree.Length; i++)
@@ -233,7 +225,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
         }
 
         if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+            Directory.CreateDirectory(folder!);
 
         if (File.Exists(filename))
             return false;
@@ -244,7 +236,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
             .AppendLine("$(function () {");
 
         stringBuilder
-            .Append($"\t$(\"#{entityName}Filter :input\").on('input', function ()")
+            .Append($"\t$(\"#{entity.Name}Filter :input\").on('input', function ()")
             .AppendLine(" {")
             .AppendLine("\t\tdataTable.ajax.reload();")
             .AppendLine("\t});")
@@ -253,11 +245,11 @@ public class MvcIndexPageCreator(string @namespace, string path)
         stringBuilder
             .AppendLine("\tvar getFilter = function () {")
             .AppendLine("\t\tvar input = {};")
-            .AppendLine($"\t\t$('#{entityName}Filter')")
+            .AppendLine($"\t\t$('#{entity.Name}Filter')")
             .AppendLine("\t\t\t.serializeArray()")
             .AppendLine("\t\t\t.forEach(function (data) {")
             .AppendLine("\t\t\t\tif (data.value != '') {")
-            .AppendLine($"\t\t\t\t\tinput[abp.utils.toCamelCase(data.name.replace(/{entityName}Filter./g, ''))] = data.value;")
+            .AppendLine($"\t\t\t\t\tinput[abp.utils.toCamelCase(data.name.replace(/{entity.Name}Filter./g, ''))] = data.value;")
             .AppendLine("\t\t\t\t}")
             .AppendLine("\t\t\t})")
             .AppendLine("\t\treturn input;")
@@ -266,7 +258,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
 
         stringBuilder
             .Append("\tvar l = abp.localization.getResource('")
-            .Append(projectName)
+            .Append(entity.ProjectName)
             .AppendLine("');");
 
         stringBuilder
@@ -274,17 +266,17 @@ public class MvcIndexPageCreator(string @namespace, string path)
 
         stringBuilder
             .Append("\tvar createModal = new abp.ModalManager(abp.appPath + '")
-            .AppendLine($"{groupName}/{entityName}/CreateModal')");
+            .AppendLine($"{entity.Pluralized}/{entity.Name}/CreateModal')");
 
         stringBuilder
             .Append("\tvar editModal = new abp.ModalManager(abp.appPath + '")
-            .AppendLine($"{groupName}/{entityName}/EditModal')");
+            .AppendLine($"{entity.Pluralized}/{entity.Name}/EditModal')");
 
         stringBuilder.AppendLine();
 
         stringBuilder
             .Append("\tvar dataTable = ")
-            .Append($"$('#{entityName}Table').DataTable(")
+            .Append($"$('#{entity.Name}Table').DataTable(")
             .AppendLine("abp.libs.datatables.normalizeConfiguration({");
 
         stringBuilder
@@ -331,7 +323,6 @@ public class MvcIndexPageCreator(string @namespace, string path)
             .AppendLine("\t\t\t\t\t\t},");
 
         // Delete Action
-
         stringBuilder
             .AppendLine("\t\t\t\t\t\t{");
 
@@ -345,7 +336,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
         stringBuilder
             .AppendLine("\t\t\t\t\t\t\tconfirmMessage: function (data) {")
             .Append("\t\t\t\t\t\t\t\treturn l('")
-            .Append($"{entityName}DeletionConfirmationMessage', ")
+            .Append($"{entity.Name}DeletionConfirmationMessage', ")
             .AppendLine("data.record.id)")
             .AppendLine("\t\t\t\t\t\t\t},");
 
@@ -369,12 +360,12 @@ public class MvcIndexPageCreator(string @namespace, string path)
             .Append("\t\t\t}");
 
         // Properties
-        foreach (var property in properties)
+        foreach (var property in entity.Properties!)
         {
             if (property.IsCollection || 
-                property.Type == "Entity" || 
-                property.Type == "ValueObject" || 
-                property.Type == "AggregateRoot")
+                property.Type == BaseTypes.Entity || 
+                property.Type == BaseTypes.ValueObject || 
+                property.Type == BaseTypes.AggregatedRoot)
                 continue;
 
             stringBuilder.AppendLine(",");
@@ -382,11 +373,11 @@ public class MvcIndexPageCreator(string @namespace, string path)
             stringBuilder
                 .AppendLine("\t\t\t{")
                 .Append("\t\t\t\ttitle: ")
-                .AppendLine($"l('{entityName}{property.Name}'),")
+                .AppendLine($"l('{entity.Name}{property.Name}'),")
                 .Append("\t\t\t\tdata: ")
                 .Append($"l('{property.Name.Camelize()}')");
 
-            if (property.Type.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
+            if (property.Type!.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
             {
                 stringBuilder
                     .AppendLine(",")
@@ -419,7 +410,7 @@ public class MvcIndexPageCreator(string @namespace, string path)
             .AppendLine();
 
         stringBuilder
-            .Append($"\t$('#New{entityName}Button')")
+            .Append($"\t$('#New{entity.Name}Button')")
             .AppendLine(".click((e) => {")
             .AppendLine("\t\te.preventDefault();")
             .AppendLine("\t\tcreateModal.open();")

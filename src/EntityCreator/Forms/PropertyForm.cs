@@ -1,4 +1,6 @@
-﻿namespace EntityCreator;
+﻿using EntityCreator.Models;
+
+namespace EntityCreator;
 
 public partial class PropertyForm : Form
 {

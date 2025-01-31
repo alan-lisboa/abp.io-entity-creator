@@ -1,35 +1,32 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System.DirectoryServices.ActiveDirectory;
 using System.Text;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class ModelCreator(string @namespace, string path)
+public class ModelCreator(EntityModel entity)
 {
-    private string[] reservedNames = ["event", "class", "bool", "string", "public", "private", "protected"];
+    private readonly string[] reservedNames = ["event", "class", "bool", "string", "public", "private", "protected"];
     
-    private string groupName;
-    private string folder;
+    private string? folder;
 
-    public bool Create(string entityName, List<PropertyModel> properties)
+    public bool Create()
     {
-        entityName = entityName.Dehumanize();
-
-        groupName = entityName.Pluralize();
-        folder = $"{path}\\src\\{@namespace}.Domain\\{groupName}";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Domain\\{entity.Pluralized}";
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
 
-        CreateEntity(entityName, properties, "FullAuditedAggregateRoot<Guid>");
+        CreateEntity(entity.Name!, entity.Properties!, "FullAuditedAggregateRoot<Guid>");
 
-        foreach (var property in properties)
+        foreach (var property in entity.Properties!)
         {
             if (property.Type == "Entity") 
-                CreateEntity(property.Name, property.Properties!, "Entity<Guid>");
+                CreateEntity(property.Name!, property.Properties!, "Entity<Guid>");
 
             if (property.Type == "ValueObject")
-                CreateEntity(property.Name, property.Properties!, "ValueObject");
+                CreateEntity(property.Name!, property.Properties!, "ValueObject");
         }
 
         return true;
@@ -56,9 +53,9 @@ public class ModelCreator(string @namespace, string path)
 
         stringBuilder
             .Append("namespace ")
-            .Append(@namespace)
+            .Append(entity.Namespace)
             .Append('.')
-            .Append(groupName)
+            .Append(entity.Pluralized)
             .AppendLine(";")
             .AppendLine();
 
@@ -86,7 +83,7 @@ public class ModelCreator(string @namespace, string path)
 
         bool firstProperty = true;
 
-        if (type != "ValueObject")
+        if (type != BaseTypes.ValueObject)
         {
             stringBuilder.Append("(Guid id");
             firstProperty = false;
@@ -107,7 +104,9 @@ public class ModelCreator(string @namespace, string path)
             if (reservedNames.Any(x => x == propertyName))
                 propertyName = "@" + propertyName;
 
-            if (property.Type == "Entity" || property.Type == "ValueObject" || property.Type == "AggregatedRoot")
+            if (property.Type == BaseTypes.Entity || 
+                property.Type == BaseTypes.ValueObject || 
+                property.Type == BaseTypes.AggregatedRoot)
                 propertyType = property.Name;
 
             if (!firstProperty)
@@ -121,7 +120,7 @@ public class ModelCreator(string @namespace, string path)
             firstProperty = false;
         }
 
-        if (type != "ValueObject")
+        if (type != BaseTypes.ValueObject)
             stringBuilder.AppendLine(") : base(id)");
         else
             stringBuilder.AppendLine(")");
@@ -157,7 +156,9 @@ public class ModelCreator(string @namespace, string path)
             var propertyName = property.Name;
             var propertyType = property.Type;
 
-            if (property.Type == "Entity" || property.Type == "ValueObject" || property.Type == "AggregatedRoot")
+            if (property.Type == BaseTypes.Entity || 
+                property.Type == BaseTypes.ValueObject || 
+                property.Type == BaseTypes.AggregatedRoot)
                 propertyType = property.Name;
 
             if (property.IsCollection)
@@ -166,15 +167,8 @@ public class ModelCreator(string @namespace, string path)
                 propertyName = propertyName.Pluralize();
             }
 
-            if (!property.IsRequired &&
-                (property.Type == "Entity" ||
-                 property.Type == "ValueObject" ||
-                 property.Type == "AggregatedRoot" ||
-                 property.Type == "string" || 
-                 property.IsCollection))
-            {
+            if (!property.IsRequired && (property.Type == BaseTypes.String || property.IsCollection))
                 propertyType += "?";
-            }
 
             stringBuilder
                 .Append("\tpublic virtual ")
@@ -188,7 +182,7 @@ public class ModelCreator(string @namespace, string path)
         }
 
         // methods
-        if (type == "ValueObject")
+        if (type == BaseTypes.ValueObject)
         {
             stringBuilder
                 .AppendLine()

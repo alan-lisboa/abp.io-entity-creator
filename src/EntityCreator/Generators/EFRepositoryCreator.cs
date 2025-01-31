@@ -1,23 +1,20 @@
-﻿using Humanizer;
+﻿using EntityCreator.Models;
+using Humanizer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EntityCreator;
+namespace EntityCreator.Generators;
 
-public class EFRepositoryCreator(string @namespace, string path)
+public class EFRepositoryCreator(EntityModel entity)
 {
-    public bool Create(string entityName)
+    public bool Create()
     {
-        entityName = entityName.Dehumanize();
-        
-        string projectName = @namespace[(@namespace.IndexOf(".") + 1)..];
-        string dbContext = $"{projectName}DbContext";
-        string artifactName = $"{entityName}Repository";
-        string groupName = entityName.Pluralize();
-        string folder = $"{path}\\src\\{@namespace}.EntityFrameworkCore\\{groupName}";
+        string dbContext = $"{entity.ProjectName}DbContext";
+        string artifactName = $"{entity.Name}Repository";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.EntityFrameworkCore\\{entity.Pluralized}";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!Directory.Exists(folder))
@@ -32,33 +29,33 @@ public class EFRepositoryCreator(string @namespace, string path)
             .AppendLine("using System;")
             .AppendLine("using System.Linq;")
             .AppendLine("using System.Threading.Tasks;")
-            .AppendLine($"using {@namespace}.EntityFrameworkCore;")
+            .AppendLine($"using {entity.Namespace}.EntityFrameworkCore;")
             .AppendLine("using Volo.Abp.Domain.Repositories.EntityFrameworkCore;")
             .AppendLine("using Volo.Abp.EntityFrameworkCore;")
             .AppendLine("using System.Collections.Generic;")
             .AppendLine("using Microsoft.EntityFrameworkCore;")
-            .AppendLine($"using {@namespace}.{groupName};")
+            .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
             .AppendLine();
 
         stringBuilder
             .Append("namespace ")
-            .Append(@namespace)
+            .Append(entity.Namespace)
             .Append('.')
-            .Append(groupName)
+            .Append(entity.Pluralized)
             .AppendLine(";")
             .AppendLine();
 
         stringBuilder
             .Append("public class ")
-            .Append(entityName)
+            .Append(entity.Name)
             .Append("Repository : EfCoreRepository<")
             .Append(dbContext)
             .Append(", ")
-            .Append(entityName)
+            .Append(entity.Name)
             .Append(", ")
             .Append("Guid")
             .Append(">, I")
-            .Append(entityName)
+            .Append(entity.Name)
             .AppendLine("Repository");
 
         stringBuilder
@@ -66,7 +63,7 @@ public class EFRepositoryCreator(string @namespace, string path)
 
         stringBuilder
             .Append("\tpublic ")
-            .Append(entityName)
+            .Append(entity.Name)
             .Append("Repository(")
             .Append("IDbContextProvider<")
             .Append(dbContext)
