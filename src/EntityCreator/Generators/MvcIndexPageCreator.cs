@@ -14,7 +14,7 @@ public class MvcIndexPageCreator(EntityModel entity)
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Pages\\{entity.Pluralized}\\{entity.Name}";
         htmlPage = $"{folder}\\Index.cshtml";
-        modelPage = $"{folder}\\Index.chtml.cs";
+        modelPage = $"{folder}\\Index.cshtml.cs";
         
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);

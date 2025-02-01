@@ -18,7 +18,7 @@ public class MvcEditModalCreator(EntityModel entity)
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Pages\\{entity.Pluralized}\\{entity.Name}";
         htmlFile = $"{folder}\\EditModal.cshtml";
-        modelFile = $"{folder}\\EditModal.chtml.cs";
+        modelFile = $"{folder}\\EditModal.cshtml.cs";
         appServiceName = $"{entity.Name}AppService";
         entityDto = $"{entity.Name}Dto";
         createDto = $"CreateUpdate{entity.Name}Dto";
@@ -40,6 +40,12 @@ public class MvcEditModalCreator(EntityModel entity)
     {
         if (File.Exists(htmlFile))
             return false;
+
+        var mainProperties = entity.Properties!
+            .Where(p => !BaseTypes.IsAggregatedChild(p.Type!));
+
+        var secondaryProperties = entity.Properties!
+            .Where(p => BaseTypes.IsAggregatedChild(p.Type!));
 
         StringBuilder stringBuilder = new();
 
@@ -73,24 +79,24 @@ public class MvcEditModalCreator(EntityModel entity)
         stringBuilder.AppendLine("\t\t<abp-modal-body>");
         stringBuilder.AppendLine("\t\t\t<abp-input asp-for=\"Id\" />");
 
-        stringBuilder.AppendLine("\t\t\t<abp-tabs>");
+        string indent = new('\t', 3);
 
-        stringBuilder.AppendLine("\t\t\t\t<abp-tab title=\"@L[\"Home\"].Value\">");
-
-        var mainProperties = entity.Properties!
-            .Where(p => !BaseTypes.IsAggregatedChild(p.Type!));
+        if (secondaryProperties.Any())
+        {
+            stringBuilder.AppendLine("\t\t\t<abp-tabs>");
+            stringBuilder.AppendLine("\t\t\t\t<abp-tab title=\"@L[\"Home\"].Value\">");
+            indent = new string('\t', 5);
+        }
 
         foreach (var property in mainProperties)
         {
             stringBuilder
-                .Append("\t\t\t\t\t<abp-input ")
+                .Append($"{indent}<abp-input ")
                 .AppendLine($"asp-for=\"ViewModel.{property.Name}\" />");
         }
 
-        stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
-
-        var secondaryProperties = entity.Properties!
-            .Where(p => BaseTypes.IsAggregatedChild(p.Type!));
+        if (secondaryProperties.Any())
+            stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
 
         foreach (var property in secondaryProperties)
         {
@@ -109,8 +115,8 @@ public class MvcEditModalCreator(EntityModel entity)
             stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
         }
 
-        
-        stringBuilder.AppendLine("\t\t\t</abp-tabs>");
+        if (secondaryProperties.Any())
+            stringBuilder.AppendLine("\t\t\t</abp-tabs>");
 
         stringBuilder.AppendLine("\t\t</abp-modal-body>");
         

@@ -16,7 +16,7 @@ public class MvcCreateModalCreator(EntityModel entity)
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Pages\\{entity.Pluralized}\\{entity.Name}";
         htmlFile = $"{folder}\\CreateModal.cshtml";
-        modelFile = $"{folder}\\CreateModal.chtml.cs";
+        modelFile = $"{folder}\\CreateModal.cshtml.cs";
         appServiceName = $"{entity.Name}AppService";
         createDto = $"CreateUpdate{entity.Name}Dto";
         viewModel = $"CreateEdit{entity.Name}ViewModel";
@@ -37,6 +37,12 @@ public class MvcCreateModalCreator(EntityModel entity)
     {
         if (File.Exists(htmlFile))
             return false;
+
+        var mainProperties = entity.Properties!
+            .Where(p => !BaseTypes.IsAggregatedChild(p.Type!));
+
+        var secondaryProperties = entity.Properties!
+            .Where(p => BaseTypes.IsAggregatedChild(p.Type!));
 
         StringBuilder stringBuilder = new();
 
@@ -62,11 +68,6 @@ public class MvcCreateModalCreator(EntityModel entity)
             .AppendLine("\tLayout = null;")
             .AppendLine("}");
 
-        //stringBuilder
-        //    .Append("<abp-dynamic-form ")
-        //    .Append("abp-model=\"ViewModel\" ")
-        //    .Append("data-ajaxForm=\"true\" ")
-        //    .AppendLine($"asp-page=\"CreateModal\">");
         stringBuilder
             .Append("<form method=\"post\" ")
             .AppendLine($"action=\"@Url.Page(\"/{entity.Pluralized}/{entity.Name}/CreateModal\")\">");
@@ -78,26 +79,25 @@ public class MvcCreateModalCreator(EntityModel entity)
             .AppendLine($"title=\"@L[\"Create{entity.Name}\"].Value\"></abp-modal-header>");
 
         stringBuilder.AppendLine("\t\t<abp-modal-body>");
-        //stringBuilder.AppendLine("\t\t\t<abp-form-content />");
 
-        stringBuilder.AppendLine("\t\t\t<abp-tabs>");
+        string indent = new('\t', 3);
 
-        stringBuilder.AppendLine("\t\t\t\t<abp-tab title=\"@L[\"Home\"].Value\">");
-
-        var mainProperties = entity.Properties!
-            .Where(p => !BaseTypes.IsAggregatedChild(p.Type!));
+        if (secondaryProperties.Any())
+        {
+            stringBuilder.AppendLine("\t\t\t<abp-tabs>");
+            stringBuilder.AppendLine("\t\t\t\t<abp-tab title=\"@L[\"Home\"].Value\">");
+            indent = new string('\t', 5);
+        }
 
         foreach (var property in mainProperties)
         {
             stringBuilder
-                .Append("\t\t\t\t\t<abp-input ")
+                .Append($"{indent}<abp-input ")
                 .AppendLine($"asp-for=\"ViewModel.{property.Name}\" />");
         }
 
-        stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
-
-        var secondaryProperties = entity.Properties!
-            .Where(p => BaseTypes.IsAggregatedChild(p.Type!));
+        if (secondaryProperties.Any())
+            stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
 
         foreach (var property in secondaryProperties)
         {
@@ -116,7 +116,8 @@ public class MvcCreateModalCreator(EntityModel entity)
             stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
         }
 
-        stringBuilder.AppendLine("\t\t\t</abp-tabs>");
+        if (secondaryProperties.Any())
+            stringBuilder.AppendLine("\t\t\t</abp-tabs>");
 
         stringBuilder.AppendLine("\t\t</abp-modal-body>");
 
@@ -127,7 +128,6 @@ public class MvcCreateModalCreator(EntityModel entity)
 
         stringBuilder.AppendLine("\t</abp-modal>");
 
-        //stringBuilder.AppendLine("</abp-dynamic-form>");
         stringBuilder.AppendLine("</form>");
 
         File.WriteAllText(htmlFile!, stringBuilder.ToString());
