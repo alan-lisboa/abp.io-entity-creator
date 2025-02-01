@@ -1,6 +1,7 @@
 using EntityCreator.Generators;
 using EntityCreator.Models;
 using Humanizer;
+using System.IO;
 
 namespace EntityCreator
 {
@@ -12,39 +13,28 @@ namespace EntityCreator
         {
             InitializeComponent();
             Properties = [];
+
+            var directory = Directory.GetCurrentDirectory();
+            LoadDir(directory);
+
+            textBox3.Focus();
         }
 
         private void Button1_Click(object sender, EventArgs e)
         {
+            textBox2.Text = "";
+
             FolderBrowserDialog folderBrowserDialog = new();
             var result = folderBrowserDialog.ShowDialog();
             if (result != DialogResult.OK)
                 return;
             
             string path = folderBrowserDialog.SelectedPath;
-            
-            var files = Directory.GetFiles(path).Where(x => x.EndsWith(".sln"));
 
-            if (!files.Any())
-            {
+            LoadDir(path);
+
+            if (string.IsNullOrEmpty(textBox2.Text))
                 MessageBox.Show("Project file not found!");
-                return;
-            }
-
-            var file = Path.GetFileName(files.First());
-            var project = string.Empty;
-            var @namespace = string.Empty;
-
-            if (!string.IsNullOrEmpty(file))
-            {
-                @namespace = file.Replace(".sln", "");
-                int index = @namespace.IndexOf('.') + 1;
-                project = @namespace[index..];
-            }
-
-            textBox1.Text = project;
-            textBox2.Text = path;
-            textBox4.Text = @namespace;
         }
 
         private void Button3_Click(object sender, EventArgs e)
@@ -102,6 +92,29 @@ namespace EntityCreator
 
             MessageBox.Show("Files Generated!\r\n\r\n" +
                 "Don't forget to run 'dotnet ef migrations' to add updates");
+        }
+
+        private void LoadDir(string path)
+        {
+            var files = Directory.GetFiles(path).Where(x => x.EndsWith(".sln"));
+
+            if (!files.Any())
+                return;
+
+            var file = Path.GetFileName(files.First());
+            var project = string.Empty;
+            var @namespace = string.Empty;
+
+            if (!string.IsNullOrEmpty(file))
+            {
+                @namespace = file.Replace(".sln", "");
+                int index = @namespace.IndexOf('.') + 1;
+                project = @namespace[index..];
+            }
+
+            textBox1.Text = project;
+            textBox2.Text = path;
+            textBox4.Text = @namespace;
         }
     }
 }

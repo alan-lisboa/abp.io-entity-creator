@@ -49,7 +49,7 @@
             button2.Location = new Point(400, 385);
             button2.Name = "button2";
             button2.Size = new Size(75, 27);
-            button2.TabIndex = 8;
+            button2.TabIndex = 6;
             button2.Text = "Add";
             button2.UseVisualStyleBackColor = true;
             button2.Click += Button2_Click;
@@ -59,7 +59,7 @@
             textBox1.Location = new Point(12, 39);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(256, 23);
-            textBox1.TabIndex = 10;
+            textBox1.TabIndex = 0;
             // 
             // label1
             // 
@@ -78,7 +78,7 @@
             comboBox1.Location = new Point(12, 95);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(256, 23);
-            comboBox1.TabIndex = 11;
+            comboBox1.TabIndex = 1;
             comboBox1.SelectedValueChanged += ComboBox1_SelectedValueChanged;
             // 
             // label2
@@ -95,7 +95,7 @@
             textBox2.Location = new Point(285, 95);
             textBox2.Name = "textBox2";
             textBox2.Size = new Size(114, 23);
-            textBox2.TabIndex = 14;
+            textBox2.TabIndex = 2;
             textBox2.TextAlign = HorizontalAlignment.Right;
             textBox2.Visible = false;
             // 
@@ -115,7 +115,7 @@
             checkBox1.Location = new Point(12, 141);
             checkBox1.Name = "checkBox1";
             checkBox1.Size = new Size(84, 19);
-            checkBox1.TabIndex = 15;
+            checkBox1.TabIndex = 3;
             checkBox1.Text = "Is Required";
             checkBox1.UseVisualStyleBackColor = true;
             // 
@@ -125,7 +125,7 @@
             checkBox2.Location = new Point(146, 141);
             checkBox2.Name = "checkBox2";
             checkBox2.Size = new Size(91, 19);
-            checkBox2.TabIndex = 16;
+            checkBox2.TabIndex = 4;
             checkBox2.Text = "Is Collection";
             checkBox2.UseVisualStyleBackColor = true;
             checkBox2.Visible = false;
@@ -145,7 +145,7 @@
             button4.Location = new Point(412, 176);
             button4.Name = "button4";
             button4.Size = new Size(29, 28);
-            button4.TabIndex = 19;
+            button4.TabIndex = 10;
             button4.Text = "-";
             button4.UseVisualStyleBackColor = true;
             button4.Visible = false;
@@ -155,7 +155,7 @@
             button3.Location = new Point(447, 176);
             button3.Name = "button3";
             button3.Size = new Size(29, 28);
-            button3.TabIndex = 18;
+            button3.TabIndex = 5;
             button3.Text = "+";
             button3.UseVisualStyleBackColor = true;
             button3.Visible = false;
@@ -174,11 +174,11 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(12, 391);
+            label5.Location = new Point(12, 385);
             label5.Name = "label5";
-            label5.Size = new Size(66, 15);
+            label5.Size = new Size(131, 15);
             label5.TabIndex = 21;
-            label5.Text = "* Never plu";
+            label5.Text = "* Never pluralize names";
             // 
             // PropertyForm
             // 

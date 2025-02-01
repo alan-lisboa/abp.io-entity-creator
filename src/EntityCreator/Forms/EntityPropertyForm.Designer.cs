@@ -44,7 +44,7 @@
             checkBox1.Location = new Point(12, 188);
             checkBox1.Name = "checkBox1";
             checkBox1.Size = new Size(84, 19);
-            checkBox1.TabIndex = 22;
+            checkBox1.TabIndex = 3;
             checkBox1.Text = "Is Required";
             checkBox1.UseVisualStyleBackColor = true;
             // 
@@ -53,7 +53,7 @@
             textBox2.Location = new Point(12, 144);
             textBox2.Name = "textBox2";
             textBox2.Size = new Size(256, 23);
-            textBox2.TabIndex = 21;
+            textBox2.TabIndex = 2;
             textBox2.TextAlign = HorizontalAlignment.Right;
             // 
             // label3
@@ -82,7 +82,7 @@
             comboBox1.Location = new Point(12, 91);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(256, 23);
-            comboBox1.TabIndex = 18;
+            comboBox1.TabIndex = 1;
             comboBox1.SelectedValueChanged += ComboBox1_SelectedValueChanged;
             // 
             // textBox1
@@ -90,7 +90,7 @@
             textBox1.Location = new Point(12, 35);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(256, 23);
-            textBox1.TabIndex = 17;
+            textBox1.TabIndex = 0;
             // 
             // label1
             // 
@@ -106,7 +106,7 @@
             button2.Location = new Point(297, 276);
             button2.Name = "button2";
             button2.Size = new Size(75, 27);
-            button2.TabIndex = 23;
+            button2.TabIndex = 4;
             button2.Text = "Add";
             button2.UseVisualStyleBackColor = true;
             button2.Click += Button2_Click;

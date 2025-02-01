@@ -59,7 +59,7 @@
             textBox1.Name = "textBox1";
             textBox1.ReadOnly = true;
             textBox1.Size = new Size(256, 23);
-            textBox1.TabIndex = 1;
+            textBox1.TabIndex = 2;
             // 
             // textBox2
             // 
@@ -67,7 +67,7 @@
             textBox2.Name = "textBox2";
             textBox2.ReadOnly = true;
             textBox2.Size = new Size(256, 23);
-            textBox2.TabIndex = 3;
+            textBox2.TabIndex = 0;
             // 
             // label2
             // 
@@ -83,7 +83,7 @@
             button1.Location = new Point(274, 31);
             button1.Name = "button1";
             button1.Size = new Size(29, 23);
-            button1.TabIndex = 4;
+            button1.TabIndex = 1;
             button1.Text = "...";
             button1.UseVisualStyleBackColor = true;
             button1.Click += Button1_Click;
@@ -93,7 +93,7 @@
             textBox3.Location = new Point(12, 188);
             textBox3.Name = "textBox3";
             textBox3.Size = new Size(256, 23);
-            textBox3.TabIndex = 6;
+            textBox3.TabIndex = 4;
             // 
             // label3
             // 
@@ -109,7 +109,7 @@
             button2.Location = new Point(347, 422);
             button2.Name = "button2";
             button2.Size = new Size(75, 27);
-            button2.TabIndex = 7;
+            button2.TabIndex = 6;
             button2.Text = "Create";
             button2.UseVisualStyleBackColor = true;
             button2.Click += Button2_click;
@@ -128,7 +128,7 @@
             button3.Location = new Point(391, 228);
             button3.Name = "button3";
             button3.Size = new Size(29, 28);
-            button3.TabIndex = 9;
+            button3.TabIndex = 5;
             button3.Text = "+";
             button3.UseVisualStyleBackColor = true;
             button3.Click += Button3_Click;
@@ -157,7 +157,7 @@
             textBox4.Name = "textBox4";
             textBox4.ReadOnly = true;
             textBox4.Size = new Size(256, 23);
-            textBox4.TabIndex = 13;
+            textBox4.TabIndex = 3;
             // 
             // label5
             // 

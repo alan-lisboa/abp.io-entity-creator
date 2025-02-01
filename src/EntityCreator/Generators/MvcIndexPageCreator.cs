@@ -91,17 +91,19 @@ public class MvcIndexPageCreator(EntityModel entity)
 
         stringBuilder
             .AppendLine($"\t<abp-button abp-collapse-id=\"{entity.Name}Collapse\"")
-            .AppendLine("\t\t\t\tbutton-type=\"Light\"")
+            .AppendLine("\t\t\t\tbutton-type=\"Secondary\"")
             .AppendLine("\t\t\t\ticon=\"filter\"")
-            .AppendLine("\t\t\t\tclass=\"mx-3\"")
-            .AppendLine("\t\t\t\ttext=\"@L[\"TableFilter\"].Value\" />")
+            .AppendLine("\t\t\t\tclass=\"mx-1 btn-sm\"")
+            .AppendLine("\t\t\t\ttext=\"@L[\"Filter\"].Value\" />")
             .AppendLine();
         
         stringBuilder
             .AppendLine($"\t@if (await Authorization.IsGrantedAsync({entity.ProjectName}Permissions.{entity.Name}.Create))")
             .AppendLine("\t{")
-            .AppendLine($"\t\t<abp-button id=\"New{entity.Name}Button\" text=\"@L[\"Create{entity.Name}\"].Value\"")
+            .AppendLine($"\t\t<abp-button id=\"New{entity.Name}Button\"")
+            .AppendLine($"\t\t\t\t\ttext=\"@L[\"Create{entity.Name}\"].Value\"")
             .AppendLine($"\t\t\t\t\ticon=\"plus\"")
+            .AppendLine($"\t\t\t\t\tclass=\"mx-1 btn-sm\"")
             .AppendLine($"\t\t\t\t\tbutton-type=\"Primary\" />")
             .AppendLine("\t}");
 
@@ -312,7 +314,7 @@ public class MvcIndexPageCreator(EntityModel entity)
 
         stringBuilder
             .Append("\t\t\t\t\t\t\tvisible: abp.auth.isGranted('")
-            .AppendLine($"{permissions}.Update'),");
+            .AppendLine($"{permissions}.Edit'),");
 
         stringBuilder
             .AppendLine("\t\t\t\t\t\t\taction: function (data) {")
