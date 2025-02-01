@@ -24,6 +24,9 @@ public class DtosCreator(EntityModel entity)
         if (!CreateListInputDto())
             return false;
 
+        if (!CreateAggregatedChildDto())
+            return false;
+
         return true;
     }
 
@@ -58,14 +61,12 @@ public class DtosCreator(EntityModel entity)
 
         foreach (var property in entity.Properties!)
         {
-            if (property.Type == BaseTypes.Entity || 
-                property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregatedRoot)
-                continue;
-
             string propertyType = property.Type!;
 
-            if (!property.IsRequired && propertyType == BaseTypes.String)
+            if (BaseTypes.IsAggregatedChild(property.Type!))
+                propertyType = $"{entity.Name}{property.Name!}Dto";
+
+            if (!property.IsRequired && BaseTypes.IsNullable(property.Type!))
                 propertyType += "?";
 
             stringBuilder
@@ -120,10 +121,13 @@ public class DtosCreator(EntityModel entity)
 
         foreach (var property in entity.Properties!)
         {
-            if (property.Type == BaseTypes.Entity || 
-                property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregatedRoot)
-                continue;
+            string propertyType = property.Type!;
+
+            if (BaseTypes.IsAggregatedChild(property.Type!))
+                propertyType = $"{entity.Name}{property.Name!}Dto";
+
+            if (!property.IsRequired && BaseTypes.IsNullable(property.Type!))
+                propertyType += "?";
 
             if (property.IsRequired)
             {
@@ -144,11 +148,6 @@ public class DtosCreator(EntityModel entity)
                 stringBuilder
                     .AppendLine("\t[DataType(DataType.Date)]");
             }
-
-            string propertyType = property.Type;
-            
-            if (!property.IsRequired && propertyType == BaseTypes.String)
-                propertyType += "?";
             
             stringBuilder
                 .Append("\tpublic ")
@@ -207,7 +206,7 @@ public class DtosCreator(EntityModel entity)
         {
             if (property.Type == BaseTypes.Entity || 
                 property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregatedRoot || 
+                property.Type == BaseTypes.AggregateRoot || 
                 property.IsCollection)
                 continue;
 
@@ -230,5 +229,69 @@ public class DtosCreator(EntityModel entity)
 
         return true;
 
+    }
+
+    private bool CreateAggregatedChildDto()
+    {
+        foreach (var entityProperty in entity.Properties!)
+        {
+            if (!BaseTypes.IsAggregatedChild(entityProperty.Type!))
+                continue;
+
+            string artifactName = $"{entity.Name}{entityProperty.Name}Dto";
+            string filename = $"{folder}\\{artifactName}.cs";
+
+            if (File.Exists(filename))
+                return false;
+
+            StringBuilder stringBuilder = new();
+
+            stringBuilder.AppendLine("using System;");
+            stringBuilder.AppendLine("using Volo.Abp.Application.Dtos;");
+            stringBuilder.AppendLine();
+
+            stringBuilder
+                .Append("namespace ")
+                .Append(entity.Namespace)
+                .Append('.')
+                .Append(entity.Pluralized)
+                .AppendLine(".Dtos;")
+                .AppendLine();
+
+            stringBuilder
+                .Append("public class ")
+                .Append(artifactName);
+
+            if (entityProperty.Type == BaseTypes.Entity)
+                stringBuilder.AppendLine(" : Entity<Guid>");
+            else
+                stringBuilder.AppendLine();
+
+            stringBuilder.AppendLine("{");
+
+            foreach (var property in entityProperty.Properties!)
+            {
+                string propertyType = property.Type!;
+
+                if (BaseTypes.IsEntityType(property.Type!))
+                    continue;
+
+                if (!property.IsRequired && property.Type! == BaseTypes.String)
+                    propertyType += "?";
+
+                stringBuilder
+                    .Append("\tpublic ")
+                    .Append(propertyType)
+                    .Append(' ').Append(property.Name)
+                    .Append(" { get; set; }")
+                    .AppendLine();
+            }
+
+            stringBuilder.AppendLine("}");
+
+            File.WriteAllText(filename, stringBuilder.ToString());
+        }
+
+        return true;
     }
 }

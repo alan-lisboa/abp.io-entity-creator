@@ -47,6 +47,22 @@ public class AppMapperUpdater(EntityModel entity)
                     .Append("\t\tCreateMap")
                     .Append($"<{createUpdateDto}, {entity.Name}>")
                     .AppendLine("(MemberList.Source);");
+
+                foreach (var property in entity.Properties!)
+                {
+                    if (BaseTypes.IsAggregatedChild(property.Type!))
+                    {
+                        stringBuilder
+                            .Append("\t\tCreateMap")
+                            .Append($"<{property.Name}, {entity.Name}{property.Name}Dto>")
+                            .AppendLine("();");
+
+                        stringBuilder
+                            .Append("\t\tCreateMap")
+                            .Append($"<{entity.Name}{property.Name}Dto, {property.Name}>")
+                            .AppendLine("();");
+                    }
+                }
             }
 
             stringBuilder.AppendLine(line);

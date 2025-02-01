@@ -106,7 +106,7 @@ public class ModelCreator(EntityModel entity)
 
             if (property.Type == BaseTypes.Entity || 
                 property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregatedRoot)
+                property.Type == BaseTypes.AggregateRoot)
                 propertyType = property.Name;
 
             if (!firstProperty)
@@ -158,7 +158,7 @@ public class ModelCreator(EntityModel entity)
 
             if (property.Type == BaseTypes.Entity || 
                 property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregatedRoot)
+                property.Type == BaseTypes.AggregateRoot)
                 propertyType = property.Name;
 
             if (property.IsCollection)

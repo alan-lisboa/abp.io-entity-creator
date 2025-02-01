@@ -367,7 +367,7 @@ public class MvcIndexPageCreator(EntityModel entity)
             if (property.IsCollection || 
                 property.Type == BaseTypes.Entity || 
                 property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregatedRoot)
+                property.Type == BaseTypes.AggregateRoot)
                 continue;
 
             stringBuilder.AppendLine(",");

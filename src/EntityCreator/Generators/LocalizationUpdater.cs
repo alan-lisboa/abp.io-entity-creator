@@ -95,7 +95,7 @@ namespace EntityCreator.Generators
                         if (property.IsCollection ||
                             property.Type == "Entity" ||
                             property.Type == "ValueObject" ||
-                            property.Type == "AggregatedRoot")
+                            property.Type == "AggregateRoot")
                             continue;
 
                         stringBuilder

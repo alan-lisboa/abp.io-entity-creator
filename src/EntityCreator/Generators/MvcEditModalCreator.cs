@@ -65,17 +65,55 @@ public class MvcEditModalCreator(EntityModel entity)
             .AppendLine("}");
 
         stringBuilder
-            .Append("<abp-dynamic-form ")
-            .Append("abp-model=\"ViewModel\" ")
-            .Append("data-ajaxForm=\"true\" ")
-            .AppendLine($"asp-page=\"EditModal\">");
+            .Append("<form method=\"post\" ")
+            .AppendLine($"action=\"@Url.Page(\"/{entity.Pluralized}/{entity.Name}/EditModal\")\">");
 
         stringBuilder.AppendLine("\t<abp-modal>");
         stringBuilder.AppendLine($"\t\t<abp-modal-header title=\"@L[\"Edit{entity.Name}\"].Value\"></abp-modal-header>");
         stringBuilder.AppendLine("\t\t<abp-modal-body>");
         stringBuilder.AppendLine("\t\t\t<abp-input asp-for=\"Id\" />");
-        stringBuilder.AppendLine("\t\t\t<abp-form-content />");
+
+        stringBuilder.AppendLine("\t\t\t<abp-tabs>");
+
+        stringBuilder.AppendLine("\t\t\t\t<abp-tab title=\"@L[\"Home\"].Value\">");
+
+        var mainProperties = entity.Properties!
+            .Where(p => !BaseTypes.IsAggregatedChild(p.Type!));
+
+        foreach (var property in mainProperties)
+        {
+            stringBuilder
+                .Append("\t\t\t\t\t<abp-input ")
+                .AppendLine($"asp-for=\"ViewModel.{property.Name}\" />");
+        }
+
+        stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
+
+        var secondaryProperties = entity.Properties!
+            .Where(p => BaseTypes.IsAggregatedChild(p.Type!));
+
+        foreach (var property in secondaryProperties)
+        {
+            stringBuilder
+                .Append("\t\t\t\t<abp-tab title=\"@L[\"")
+                .Append(property.Name)
+                .AppendLine("\"].Value\">");
+
+            foreach (var subProperty in property.Properties!)
+            {
+                stringBuilder
+                    .Append("\t\t\t\t\t<abp-input ")
+                    .AppendLine($"asp-for=\"ViewModel.{property.Name}.{subProperty.Name}\" />");
+            }
+
+            stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
+        }
+
+        
+        stringBuilder.AppendLine("\t\t\t</abp-tabs>");
+
         stringBuilder.AppendLine("\t\t</abp-modal-body>");
+        
         stringBuilder
             .Append("\t\t<abp-modal-footer ")
             .Append("buttons=\"@(AbpModalButtons.Cancel|AbpModalButtons.Save)\">")
@@ -83,7 +121,7 @@ public class MvcEditModalCreator(EntityModel entity)
 
         stringBuilder.AppendLine("\t</abp-modal>");
 
-        stringBuilder.AppendLine("</abp-dynamic-form>");
+        stringBuilder.AppendLine("</form>");
 
         File.WriteAllText(htmlFile!, stringBuilder.ToString());
 

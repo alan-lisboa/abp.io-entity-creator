@@ -126,7 +126,7 @@ public class EFContextUpdater(EntityModel entity)
                     }
 
                     // Entities
-                    if (property.Type == "Entity" || property.Type == "AggregatedRoot")
+                    if (property.Type == "Entity" || property.Type == "AggregateRoot")
                     {
                         if (property.IsCollection)
                         {
