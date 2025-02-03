@@ -1,0 +1,602 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Abp.io Entity Creator</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .panel {
+            padding: 30px;
+            border-radius: 10px;
+            border: #dee2e6 1px solid;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body class="m-4">
+    <!-- Alert -->
+    <div aria-live="polite" aria-atomic="true" class="position-relative">
+        <div class="toast-container top-0 end-0 p-3">
+            <div class="toast align-items-center text-bg-danger border-0 bottom-0 end-0" role="alert"
+                aria-live="assertive" aria-atomic="true" id="toastMessage">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Alert.
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                        aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="modalEntity" tabindex="-1" aria-labelledby="entityModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="entityModalTitle">Define Entity</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="entityPropertyName" class="control-label">Name</label>
+                            <input type="text" class="form-control" aria-label="Name" id="entityPropertyName">
+                        </div>
+                        <div class="col-6">
+                            <label for="entityPropertyType" class="control-label">Type</label>
+                            <select class="form-select" aria-label="string" id="entityPropertyType">
+                                <option selected>string</option>
+                                <option value="int">int</option>
+                                <option value="long">long</option>
+                                <option value="Guid">Guid</option>
+                                <option value="decimal">decimal</option>
+                                <option value="float">float</option>
+                                <option value="double">double</option>
+                                <option value="DateTime">DateTime</option>
+                                <option value="TimeSpan">TimeSpan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <label for="entityPropertySize" class="control-label">Size</label>
+                            <input type="text" class="form-control" placeholder="Size" aria-label="Size" value="100"
+                                id="entityPropertySize">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="float-end">
+                                <button class="btn btn-outline-primary ms-3" name="addEntityProperty"
+                                    id="addEntityProperty">
+                                    Add Property
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table class="table table-hover mt-4" id="entityPropertyTableProperties">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Size</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProperty()">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <img src="../images/logo-abp-dark.svg" class="img-fluid mb-3" alt="abp.io" />
+
+    <!-- Main Page -->
+    <div id="mainPage" class="form-horizontal m-3">
+        <div class="row">
+            <div class="col-6">
+                <div class="form-group">
+                    <label class="control-label">Solution Location</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="SolutionLocation" id="solutionLocation"
+                            readonly="true" placeholder="Location for .sln file"
+                            aria-describedby="openSolutionLocation" />
+                        <button class="btn btn-info" type="button" id="openSolutionLocation"
+                            onclick="openSolutionFolder()">
+                            ...
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="entityName" class="col-3 control-label">Entity Name</label>
+                    <input type="text" class="form-control" name="Entity Name" id="entityName"
+                        aria-describedby="entityHelpBlock" />
+                    <div id="entityHelpBlock" class="form-text">
+                        Don't use pluralized names for entity. For example, use "Person" instead of "People".
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h4 class="mb-4">Entity Properties</h4>
+
+            <div class="row">
+                <div class="col-6">
+                    <label for="propertyName" class="control-label">Name</label>
+                    <input type="text" class="form-control" aria-label="Name" id="propertyName"
+                        aria-describedby="propertyNameHelpBlock">
+                    <div id="propertyNameHelpBlock" class="form-text">
+                        Don't need to add property for Id. This is automatically added.
+                    </div>
+                </div>
+                <div class="col-4">
+                    <label for="propertyType" class="control-label">Type</label>
+                    <select class="form-select" aria-label="string" id="propertyType">
+                        <option selected>string</option>
+                        <option value="int">int</option>
+                        <option value="long">long</option>
+                        <option value="Guid">Guid</option>
+                        <option value="decimal">decimal</option>
+                        <option value="float">float</option>
+                        <option value="double">double</option>
+                        <option value="DateTime">DateTime</option>
+                        <option value="TimeSpan">TimeSpan</option>
+                        <option value="Entity">Entity</option>
+                        <option value="ValueObject">ValueObject</option>
+                        <option value="AggregateRoot">AggregateRoot</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label for="propertySize" class="control-label">Size</label>
+                    <input type="number" class="form-control" placeholder="Size" aria-label="Size" value="100"
+                        aria-describedby="sizeHelpBlock" id="propertySize">
+                    <div id="sizeHelpBlock" class="form-text">
+                        Only for string type.
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-3">
+                    <label for="propertyIsRequired" class="control-label">Is Required</label>
+                    <select class="form-select" aria-label="isRequired" id="propertyIsRequired">
+                        <option value=false selected>No</option>
+                        <option value=true>Yes</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label for="propertyIsCollection" class="control-label">Is Collection</label>
+                    <select class="form-select" aria-label="isCollection" id="propertyIsCollection">
+                        <option value=false selected>No</option>
+                        <option value=true>Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="float-end">
+                        <button class="btn btn-outline-secondary" name="defineproperty" id="defineProperty" disabled>
+                            Define
+                            property
+                        </button>
+                        <button class="btn btn-outline-primary ms-3" name="addproperty" id="addproperty">
+                            Add
+                            Property
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <table class="table table-hover mt-4" id="tableProperties">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Size</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr>
+                        <td colspan="5" class="text-center">No property defined.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-6"></div>
+            <div class="col-6">
+                <div class="float-end">
+                    <button class="btn btn-primary" name="create" value="Create"
+                        onclick="createEntity()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../libs/jquery/jquery-2.1.3.min.js"></script>
+    <script src="../libs/bootstrap/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+
+        var entityModel = {
+            Name: "",
+            Location: "",
+            ProjectName: "",
+            Namespace: "",
+            Properties: []
+        };
+
+        var entityProperties = [];
+
+        function showAlert(message) {
+            $(".toast").removeClass("text-bg-success");
+            $(".toast").addClass("text-bg-danger");
+
+            $("#toastMessage .toast-body").text(message);
+            $("#toastMessage").toast("show");
+        }
+
+        function showSuccess(message) {
+            $(".toast").addClass("text-bg-success");
+            $(".toast").removeClass("text-bg-danger");
+
+            $("#toastMessage .toast-body").text(message);
+            $("#toastMessage").toast("show");
+        }
+
+        function validatePropertyName(property) {
+            var propertyName = $(property).val();
+
+            if (propertyName == "") {
+                $(property).addClass("is-invalid");
+                showAlert("Property name is required.");
+                return false;
+            }
+
+            if (propertyName.indexOf(" ") != -1) {
+                $(property).addClass("is-invalid");
+                showAlert("Property name can not contain spaces.");
+                return false;
+            }
+
+            if (propertyName.indexOf(".") != -1) {
+                $(property).addClass("is-invalid");
+                showAlert("Property name can not contain dots.");
+                return false;
+            }
+
+            var proibhited = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '+', '=', '[', ']', '{', '}', '|', '\\', ':', ';', '"', '\'', '<', '>', ',', '.', '?', '/', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+
+            if (proibhited.some((x) => propertyName.substring(0, 1).includes(x))) {
+                $(property).addClass("is-invalid");
+                showAlert("Property name can not start with this letter.");
+                return false;
+            }
+
+            return true;
+        }
+
+        function addProperty() {
+            $("#propertyName").removeClass("is-invalid");
+
+            var propertyName = $("#propertyName").val();
+            var propertyType = $("#propertyType").val();
+            var propertySize = $("#propertySize").val();
+            var propertyIsRequired = $("#propertyIsRequired").val();
+            var propertyIsCollection = $("#propertyIsCollection").val();
+
+            if (!validatePropertyName("#propertyName"))
+                return;
+
+            if (propertyType != "string")
+                propertySize = "0";
+
+            if (entityModel.Properties.length == 0) {
+                $("#tableProperties tbody").empty();
+            }
+
+            var index = Math.max(...entityModel.Properties.map(x => x.Index), 0) + 1;
+
+            var property = {
+                Index: index,
+                Name: propertyName,
+                Type: propertyType,
+                Size: Number(propertySize),
+                IsRequired: propertyIsRequired == "true" ? true : false,
+                IsCollection: propertyIsCollection == "true" ? true : false,
+                Properties: []
+            };
+
+            entityModel.Properties.push(property);
+
+            var row = "<tr>" +
+                "<th scope='row'>" + index +
+                "</th><td>" + propertyName +
+                "</td><td>" + propertyType +
+                "</td><td>" + propertySize +
+                "</td><td><button class='btn btn-sm btn-outline-danger' onclick='removeProperty(this)'>Remove</button></td>" +
+                "</tr>";
+
+            $(".table-group-divider").append(row);
+
+            $("#propertyName").val("");
+            $("#propertyType").val("string");
+            $("#propertySize").val("100");
+            $("#propertyIsRequired").val("false");
+            $("#propertyIsCollection").val("false");
+
+            $("#propertyName").focus();
+        }
+
+        function addEntityProperty() {
+            $("#entityPropertyName").removeClass("is-invalid");
+
+            var entityPropertyName = $("#entityPropertyName").val();
+            var entityPropertyType = $("#entityPropertyType").val();
+            var entityPropertySize = $("#entityPropertySize").val();
+
+            if (!validatePropertyName("#entityPropertyName"))
+                return;
+
+            if (entityPropertyType != "string")
+                entityPropertyType = "0";
+
+            var index = Math.max(...entityProperties.map(x => x.Index), 0) + 1;
+
+            var property = {
+                Index: index,
+                Name: entityPropertyName,
+                Type: entityPropertyType,
+                Size: Number(entityPropertySize)
+            };
+
+            entityProperties.push(property);
+
+            var row = "<tr>" +
+                "<th scope='row'>" + index +
+                "</th><td>" + entityPropertyName +
+                "</td><td>" + entityPropertyType +
+                "</td><td>" + entityPropertySize +
+                "</td><td><button class='btn btn-sm btn-outline-danger' onclick='removeEntityProperty(this)'>Remove</button></td>" +
+                "</tr>";
+
+            $("#entityPropertyTableProperties").append(row);
+
+            $("#entityPropertyName").val("");
+            $("#entityPropertyType").val("string");
+            $("#entityPropertySize").val("100");
+
+            $("#entityPropertyName").focus();
+        }
+
+        function removeProperty(e) {
+            var index = $(e).closest("tr").find("th").text();
+
+            entityModel.properties = entityModel.Properties.filter(function (item) {
+                return item.Index != index;
+            });
+
+            $(e).closest("tr").remove();
+
+            console.log(entityModel);
+        }
+
+        function removeEntityProperty(e) {
+            var index = $(e).closest("tr").find("th").text();
+
+            entityProperties = entityProperties.filter(function (item) {
+                return item.Index != index;
+            });
+
+            $(e).closest("tr").remove();
+        }
+
+        function changePropertyType() {
+            var propertyType = $("#propertyType").val();
+
+            if (propertyType == "ValueObject" || propertyType == "Entity")
+                $("#defineProperty").prop("disabled", false);
+            else
+                $("#defineProperty").prop("disabled", true);
+        }
+
+        function showEntityModal() {
+            if (!validatePropertyName("#propertyName"))
+                return;
+
+            entityProperties = [];
+
+            $("#entityPropertyTableProperties tbody").empty();
+            $("#modalEntity").modal("show");
+        }
+
+        function saveProperty() {
+
+            if (entityProperties.length == 0) {
+                showAlert("Please add at least one property.");
+                return;
+            }
+
+            var propertyName = $("#propertyName").val();
+            var propertyType = $("#propertyType").val();
+            var propertySize = $("#propertySize").val();
+            var propertyIsRequired = $("#propertyIsRequired").val();
+            var propertyIsCollection = $("#propertyIsCollection").val();
+
+            if (propertyType != "string")
+                propertySize = "0";
+
+            var index = Math.max(...entityModel.Properties.map(x => x.Index), 0) + 1;
+
+            var property = {
+                Index: index,
+                Name: propertyName,
+                Type: propertyType,
+                Size: Number(propertySize),
+                IsRequired: propertyIsRequired == "true" ? true : false,
+                IsCollection: propertyIsCollection == "true" ? true : false,
+                Properties: entityProperties
+            };
+
+            entityModel.Properties.push(property);
+
+            var row = "<tr>" +
+                "<th scope='row'>" + index +
+                "</th><td>" + propertyName +
+                "</td><td>" + propertyType +
+                "</td><td>" + propertySize +
+                "</td><td><button class='btn btn-sm btn-outline-danger' onclick='removeProperty(this)'>Remove</button></td>" +
+                "</tr>";
+
+            $(".table-group-divider").append(row);
+
+            $("#propertyName").val("");
+            $("#propertyType").val("string");
+            $("#propertySize").val("100");
+            $("#propertyIsRequired").val("No");
+            $("#propertyIsCollection").val("No");
+
+            console.log(entityModel);
+
+            $("#modalEntity").modal("hide");
+        }
+
+        function openSolutionFolder() {
+            $("#solutionLocation").removeClass("is-invalid");
+            postMessageToHost('OpenSolutionFolder');
+        }
+
+        function loadSolutionData(data) {
+            entityModel.Location = data.Location;
+            entityModel.ProjectName = data.ProjectName;
+            entityModel.Namespace = data.Namespace;
+
+            $("#solutionLocation").val(data.Location);
+        }
+
+        function showInvalidSolutionFolder() {
+            $("#solutionLocation").addClass("is-invalid");
+            showAlert("Invalid solution location.");
+        }
+
+        function showCreationEntityFailed(data) {
+            showAlert(data.Message);
+        }
+
+        function createEntity() {
+            $("#solutionLocation").removeClass("is-invalid");
+            $("#entityName").removeClass("is-invalid");
+
+            if (entityModel.Location == "") {
+                $("#solutionLocation").addClass("is-invalid");
+                showAlert("Please select a solution location.");
+                return;
+            }
+
+            if ($("#entityName").val() == "") {
+                $("entityName").addClass("is-invalid");
+                showAlert("Please enter entity name.");
+                return;
+            }
+
+            if (entityModel.Properties.length == 0) {
+                showAlert("Please add at least one property.");
+                return;
+            }
+
+            entityModel.Name = $("#entityName").val();
+
+            postMessageToHost('CreateEntity', entityModel);
+        }
+
+        function showCreationEntitySuccess() {
+            $("#solutionLocation").val("");
+            $("#entityName").val("");
+            $("#propertyName").val("");
+            $("#propertyType").val("string");
+            $("#propertySize").val("100");
+            $("#propertyIsRequired").val("No");
+            $("#propertyIsCollection").val("No");
+            $("#tableProperties tbody").empty();
+
+            entityModel = {
+                Name: "",
+                Location: "",
+                ProjectName: "",
+                Namespace: "",
+                Properties: []
+            };
+
+            entityProperties = [];
+
+            showSuccess("Entity Created with success!");
+        }
+
+        $(document).ready(function () {
+            $("#addproperty").click(() => addProperty());
+            $("#propertyType").change(() => changePropertyType());
+            $("#defineProperty").click(() => showEntityModal());
+            $("#addEntityProperty").click(() => addEntityProperty());
+        });
+
+        window.chrome.webview.addEventListener('message', function (e) {
+            var message = JSON.parse(e.data);
+
+            if (message.Command == 'LoadSolutionData') {
+                loadSolutionData(message.Payload);
+            }
+
+            if (message.Command == 'InvalidSolutionFolder') {
+                showInvalidSolutionFolder();
+            }
+
+            if (message.Command == 'EntityCreatedSuccessfuly') {
+                showCreationEntitySuccess();
+            }
+
+            if (message.Command == 'EntityCreateFailed') {
+                showCreationEntityFailed(message.payload);
+            }
+        })
+
+        function postMessageToHost(command, payload) {
+            var message = {
+                command: command,
+                payload: payload
+            };
+
+            chrome.webview.postMessage(JSON.stringify(message));
+        }
+
+    </script>
+</body>
+
+</html>
