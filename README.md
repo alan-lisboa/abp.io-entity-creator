@@ -2,7 +2,7 @@
 
 This tool allows you to create new entities for solutions made with abp.io framework.
 
-Its use is very simple and similar to the AbpHelper tool (cli) with the difference that it is not necessary to model the entity in the solution.
+Its use is very simple and similar to the [AbpHelper (CLI) tool](https://github.com/EasyAbp/AbpHelper.CLI), with the difference that it is not necessary to model the entity in the solution and it also has a more friendly UI.
 
 ## How to Use
 
