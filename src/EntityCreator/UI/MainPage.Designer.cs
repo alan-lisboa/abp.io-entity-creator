@@ -41,7 +41,7 @@
             webView2.Dock = DockStyle.Fill;
             webView2.Location = new Point(0, 0);
             webView2.Name = "webView2";
-            webView2.Size = new Size(1141, 809);
+            webView2.Size = new Size(1141, 861);
             webView2.TabIndex = 0;
             webView2.ZoomFactor = 1D;
             // 
@@ -50,7 +50,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Window;
-            ClientSize = new Size(1141, 809);
+            ClientSize = new Size(1141, 861);
             Controls.Add(webView2);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "MainPage";

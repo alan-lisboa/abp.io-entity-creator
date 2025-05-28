@@ -10,7 +10,7 @@ public class DtosCreator(EntityModel entity)
 
     public bool Create()
     {
-        folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\{entity.Pluralized}\\Dtos";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Contracts\\{entity.Pluralized}\\Dtos";
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);

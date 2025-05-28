@@ -8,7 +8,7 @@ public class AppServiceCreator(EntityModel entity)
     public bool Create()
     {
         string artifactName = $"{entity.Name}AppService";
-        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application\\{entity.Pluralized}";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application\\Services\\{entity.Pluralized}";
         string filename = $"{folder}\\{artifactName}.cs";
         string permissions = $"{entity.ProjectName}Permissions.{entity.Name}";
         string entityDto = $"{entity.Name}Dto";

@@ -14,7 +14,7 @@ public class EFRepositoryCreator(EntityModel entity)
     {
         string dbContext = $"{entity.ProjectName}DbContext";
         string artifactName = $"{entity.Name}Repository";
-        string folder = $"{entity.Location}\\src\\{entity.Namespace}.EntityFrameworkCore\\{entity.Pluralized}";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.EntityFrameworkCore\\Entities\\{entity.Pluralized}";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!Directory.Exists(folder))

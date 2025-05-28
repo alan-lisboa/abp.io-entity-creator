@@ -51,7 +51,12 @@ public class EntityModel
 
             return _plularized; 
         }
+        set
+        {
+            _plularized = value;
+        }
     }
 
     public List<PropertyModel>? Properties { get; set; }
+    public List<LocalizationModel>? Localizations { get; set; }
 }

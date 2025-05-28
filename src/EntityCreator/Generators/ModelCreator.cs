@@ -13,7 +13,7 @@ public class ModelCreator(EntityModel entity)
 
     public bool Create()
     {
-        folder = $"{entity.Location}\\src\\{entity.Namespace}.Domain\\{entity.Pluralized}";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Domain\\Entities\\{entity.Pluralized}";
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);

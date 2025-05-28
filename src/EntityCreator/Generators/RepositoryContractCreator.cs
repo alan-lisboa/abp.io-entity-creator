@@ -9,7 +9,7 @@ public class RepositoryContractCreator(EntityModel entity)
     public bool Create()
     {
         string artifactName = $"I{entity.Name}Repository";
-        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Domain\\{entity.Pluralized}";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Domain\\Entities\\{entity.Pluralized}";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!Directory.Exists(folder))

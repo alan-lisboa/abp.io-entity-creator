@@ -96,7 +96,7 @@ public class MvcIndexPageCreator(EntityModel entity)
             .AppendLine("\t\t\t\tclass=\"mx-1 btn-sm\"")
             .AppendLine("\t\t\t\ttext=\"@L[\"Filter\"].Value\" />")
             .AppendLine();
-        
+
         stringBuilder
             .AppendLine($"\t@if (await Authorization.IsGrantedAsync({entity.ProjectName}Permissions.{entity.Name}.Create))")
             .AppendLine("\t{")

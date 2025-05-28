@@ -9,7 +9,7 @@ public class AppServiceContractCreator(EntityModel entity)
     public bool Create()
     {
         string artifactName = $"I{entity.Name}AppService";
-        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\{entity.Pluralized}";
+        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Contracts\\{entity.Pluralized}";
         string filename = $"{folder}\\{artifactName}.cs";
 
         if (!Directory.Exists(folder))

@@ -29,6 +29,14 @@ namespace EntityCreator.Generators
             if (!File.Exists(file))
                 return;
 
+            var lang = file
+                .Replace(folder!, "")
+                .Replace("\\", "")
+                .Replace(".json", "");
+
+            var definition = entity.Localizations?
+                .FirstOrDefault(x => x.Language == lang);
+
             StringBuilder stringBuilder = new();
 
             using var reader = new StreamReader(file);
@@ -66,29 +74,46 @@ namespace EntityCreator.Generators
                 {
                     isSession = false;
 
+                    var entityName = definition?.EntityName ?? entity.Name;
+                    var permissionCreate = definition?.Create ?? "Create";
+                    var permissionEdit = definition?.Edit ?? "Edit";
+                    var permissionDelete = definition?.Delete ?? "Delete";
+                    var menuEntry = definition?.PluralizedName ?? entity.Pluralized;
+                    var createEntity = $"{definition?.Create} {definition?.EntityName}";
+                    if (string.IsNullOrEmpty(createEntity.Trim()))
+                        createEntity = "Create";
+
+                    var editEntity = $"{definition?.Edit} {definition?.EntityName}";
+                    if (string.IsNullOrEmpty(editEntity.Trim()))
+                        editEntity = "Edit";
+
+                    var deletionMessage = $"{definition?.DeletionMessage}";
+                    if (string.IsNullOrEmpty(deletionMessage.Trim()))
+                        deletionMessage = $"Are you sure to delete the {entity.Name} " + "{0}?";
+
                     stringBuilder
                         .Append($"{indent}\"Permission:{entity.Name}\": ")
-                        .AppendLine($"\"{entity.Name}\",");
+                        .AppendLine($"\"{entityName}\",");
 
                     stringBuilder
                         .Append($"{indent}\"Permission:{entity.Name}.Create\": ")
-                        .AppendLine("\"Create\",");
-
+                        .AppendLine($"\"{permissionCreate}\",");
+                    
                     stringBuilder
                         .Append($"{indent}\"Permission:{entity.Name}.Edit\": ")
-                        .AppendLine("\"Edit\",");
-
+                        .AppendLine($"\"{permissionEdit}\",");
+                    
                     stringBuilder
                         .Append($"{indent}\"Permission:{entity.Name}.Delete\": ")
-                        .AppendLine("\"Delete\",");
+                        .AppendLine($"\"{permissionDelete}\",");
 
                     stringBuilder
                         .Append($"{indent}\"Menu:{entity.Name}\": ")
-                        .AppendLine($"\"{entity.Pluralized}\",");
+                        .AppendLine($"\"{menuEntry}\",");
 
                     stringBuilder
                         .Append($"{indent}\"{entity.Name}\": ")
-                        .AppendLine($"\"{entity.Name}\",");
+                        .AppendLine($"\"{entityName}\",");
 
                     foreach (var property in entity.Properties!)
                     {
@@ -98,23 +123,25 @@ namespace EntityCreator.Generators
                             property.Type == "AggregateRoot")
                             continue;
 
+                        var propertyDefinition = definition?.Properties?.Find(x => x.Property == property.Name);
+                        var propertyName = propertyDefinition?.Translation ?? property.Name;
+
                         stringBuilder
                             .Append($"{indent}\"{entity.Name}{property.Name}\": ")
-                            .AppendLine($"\"{property.Name}\",");
+                            .AppendLine($"\"{propertyName}\",");
                     }
 
                     stringBuilder
                         .Append($"{indent}\"Create{entity.Name}\": ")
-                        .AppendLine($"\"Create\",");
+                        .AppendLine($"\"{createEntity}\",");
 
                     stringBuilder
                         .Append($"{indent}\"Edit{entity.Name}\": ")
-                        .AppendLine($"\"Edit\",");
+                        .AppendLine($"\"{editEntity}\",");
 
                     stringBuilder
                         .Append($"{indent}\"{entity.Name}DeletionConfirmationMessage\": ")
-                        .Append($"\"Are you sure to delete the {entity.Name}")
-                        .AppendLine(" {0}?\"");
+                        .AppendLine($"\"{deletionMessage}\"");
                 }
 
                 stringBuilder.AppendLine(line);
