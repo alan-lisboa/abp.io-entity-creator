@@ -8,5 +8,6 @@ public class PropertyModel
     public int Size { get; set; }
     public bool IsRequired { get; set; }
     public bool IsCollection { get; set; }
+    public bool IsDefault { get; set; }
     public List<PropertyModel>? Properties { get; set; }
 }

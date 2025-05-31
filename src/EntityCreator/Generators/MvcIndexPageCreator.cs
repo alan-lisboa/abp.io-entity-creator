@@ -225,11 +225,18 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
 
         builder
             .Append(Indentation)
-            .AppendLine("<input class=\"form-control\" placeholder=\"@L[\"Search\"].Value\" type=\"search\">");
+            .Append("<input class=\"form-control\" ")
+            .Append("placeholder=\"@L[\"Search\"].Value\"")
+            .Append($"id=\"{entity.Name}SearchText\"")
+            .AppendLine("type=\"search\">");
 
         builder
             .Append(Indentation)
-            .AppendLine("<button class=\"btn btn-primary\" type=\"button\"><i class=\"fa fa-search\"></i></button>");
+            .Append("<button class=\"btn btn-primary\" ")
+            .Append("type=\"button\"")
+            .Append($"id=\"{entity.Name}SearchButton\" >")
+            .Append("<i class=\"fa fa-search\"></i>")
+            .AppendLine("</button>");
 
         indentationLevel --;
 

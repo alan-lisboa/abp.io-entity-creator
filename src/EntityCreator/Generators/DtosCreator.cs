@@ -1,6 +1,7 @@
 ﻿using EntityCreator.Helpers;
 using EntityCreator.Models;
 using Humanizer;
+using System.DirectoryServices.ActiveDirectory;
 using System.Text;
 
 namespace EntityCreator.Generators;
@@ -213,6 +214,11 @@ public class DtosCreator(EntityModel entity) : BaseGenerator
             .AppendLine("{");
 
         indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .Append("public string? Search { get; set; }")
+            .AppendLine();
 
         foreach (var property in entity.Properties!)
         {
