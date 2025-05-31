@@ -1,23 +1,17 @@
-﻿using EntityCreator.Models;
+﻿using EntityCreator.Helpers;
+using EntityCreator.Models;
 using Humanizer;
 using System.Text;
 
 namespace EntityCreator.Generators;
 
-public class MvcIndexPageCreator(EntityModel entity)
+public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
 {
-    private string? folder;
-    private string? htmlPage;
-    private string? modelPage;
-
-    public bool Create()
+    public override bool Handle()
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Pages\\{entity.Pluralized}\\{entity.Name}";
-        htmlPage = $"{folder}\\Index.cshtml";
-        modelPage = $"{folder}\\Index.cshtml.cs";
         
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+        CreateDirectory(folder);
 
         if (!CreatePage())
             return false;
@@ -36,13 +30,15 @@ public class MvcIndexPageCreator(EntityModel entity)
 
     private bool CreatePage()
     {
+        var htmlPage = $"{folder}\\Index.cshtml";
+
         if (File.Exists(htmlPage))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
         // usings
-        stringBuilder
+        builder
             .AppendLine("@page")
             .AppendLine($"@using {entity.Namespace}.Permissions")
             .AppendLine("@using Microsoft.AspNetCore.Authorization")
@@ -53,166 +49,383 @@ public class MvcIndexPageCreator(EntityModel entity)
             .AppendLine($"@using {entity.Namespace}.Web.Menus");
 
         // model
-        stringBuilder
+        builder
             .AppendLine("@model IndexModel");
 
         // injects
-        stringBuilder
+        builder
             .AppendLine("@inject IPageLayout PageLayout")
             .AppendLine($"@inject IHtmlLocalizer<{entity.ProjectName}Resource> L")
             .AppendLine("@inject IAuthorizationService Authorization");
 
         // code
-        stringBuilder
-            .AppendLine("@{")
-            .AppendLine($"\tPageLayout.Content.Title = L[\"{entity.Name}\"].Value;")
-            .AppendLine($"\tPageLayout.Content.BreadCrumb.Add(L[\"Menu:{entity.Name}\"].Value);")
-            .AppendLine($"\tPageLayout.Content.MenuItemName = {entity.ProjectName}Menus.{entity.Name};")
+        builder
+            .AppendLine("@{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"PageLayout.Content.Title = L[\"{entity.Name}\"].Value;");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"PageLayout.Content.BreadCrumb.Add(L[\"Menu:{entity.Name}\"].Value);");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"PageLayout.Content.MenuItemName = {entity.ProjectName}Menus.{entity.Name};");
+
+        indentationLevel--;
+
+        builder
             .AppendLine("}");
 
         // scripts
-        stringBuilder
+        builder
             .AppendLine("@section scripts")
-            .AppendLine("{")
-            .AppendLine($"\t<abp-script src=\"/Pages/{entity.Pluralized}/{entity.Name}/index.js\" />")
+            .AppendLine("{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"<abp-script src=\"/Pages/{entity.Pluralized}/{entity.Name}/index.js\" />");
+
+        indentationLevel--;
+
+        builder
             .AppendLine("}");
 
         // styles
-        stringBuilder
+        builder
             .AppendLine("@section styles")
-            .AppendLine("{")
-            .AppendLine($"\t<abp-style src=\"/Pages/{entity.Pluralized}/{entity.Name}/index.css\" />")
-            .AppendLine("}");
-
-        // toolbar
-        stringBuilder
-            .AppendLine("@section content_toolbar")
             .AppendLine("{");
 
-        stringBuilder
-            .AppendLine($"\t<abp-button abp-collapse-id=\"{entity.Name}Collapse\"")
-            .AppendLine("\t\t\t\tbutton-type=\"Secondary\"")
-            .AppendLine("\t\t\t\ticon=\"filter\"")
-            .AppendLine("\t\t\t\tclass=\"mx-1 btn-sm\"")
-            .AppendLine("\t\t\t\ttext=\"@L[\"Filter\"].Value\" />")
-            .AppendLine();
+        indentationLevel++;
 
-        stringBuilder
-            .AppendLine($"\t@if (await Authorization.IsGrantedAsync({entity.ProjectName}Permissions.{entity.Name}.Create))")
-            .AppendLine("\t{")
-            .AppendLine($"\t\t<abp-button id=\"New{entity.Name}Button\"")
-            .AppendLine($"\t\t\t\t\ttext=\"@L[\"Create{entity.Name}\"].Value\"")
-            .AppendLine($"\t\t\t\t\ticon=\"plus\"")
-            .AppendLine($"\t\t\t\t\tclass=\"mx-1 btn-sm\"")
-            .AppendLine($"\t\t\t\t\tbutton-type=\"Primary\" />")
-            .AppendLine("\t}");
+        builder
+            .Append(Indentation)
+            .AppendLine($"<abp-style src=\"/Pages/{entity.Pluralized}/{entity.Name}/index.css\" />");
 
-        stringBuilder
+        indentationLevel--;
+
+        builder
             .AppendLine("}");
 
+        // header
+        builder
+            .AppendLine("<div class=\"d-flex\">");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<div class=\"col\">");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"<h1 class=\"content-header-title\">@L[\"{entity.Name}\"].Value</h1>");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</div>");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<div class=\"col-auto\">");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"@if (await Authorization.IsGrantedAsync({entity.ProjectName}Permissions.{entity.Name}.Create))");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"<abp-button id=\"New{entity.Name}Button\"");
+
+        indentationLevel += 3;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"text=\"@L[\"Create{entity.Name}\"].Value\"");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"icon=\"plus\"");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"class=\"btn-sm\"");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"button-type=\"Primary\" />");
+
+        indentationLevel -= 4;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</div>");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</div>");
+
         // body
-        stringBuilder.AppendLine("<abp-card>");
+        builder
+            .AppendLine("<abp-card>");
         
-        stringBuilder.AppendLine("\t<abp-card-body>");
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<abp-card-body>");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<div class=\"d-flex\">");
+
+        // Search
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<div class=\"col\">");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<div class=\"input-group\">");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<input class=\"form-control\" placeholder=\"@L[\"Search\"].Value\" type=\"search\">");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<button class=\"btn btn-primary\" type=\"button\"><i class=\"fa fa-search\"></i></button>");
+
+        indentationLevel --;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</div>");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</div>");
 
         // filter
-        stringBuilder
-            .Append($"\t\t<abp-dynamic-form ")
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<div class=\"col-auto ms-4\">");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"<abp-button abp-collapse-id=\"{entity.Name}Collapse\"");
+
+        indentationLevel += 3;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("button-type=\"Outline_Primary\"");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("icon=\"chevron-down\"");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("text=\"@L[\"Filter\"].Value\" />")
+            .AppendLine();
+
+        indentationLevel -= 4;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</div>");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</div>");
+
+        builder
+            .Append(Indentation)
+            .Append($"<abp-dynamic-form ")
             .Append($"abp-model=\"{entity.Name}Filter\" ")
             .Append($"id=\"{entity.Name}Filter\" ")
             .Append($"required-symbols=\"false\" ")
             .AppendLine($"column-size=\"_3\">");
 
-        stringBuilder
-            .AppendLine($"\t\t\t<abp-collapse-body id=\"{entity.Name}Collapse\">");
+        indentationLevel++;
 
-        stringBuilder
-            .AppendLine("\t\t\t\t<abp-form-content />");
+        builder
+            .Append(Indentation)
+            .AppendLine($"<abp-collapse-body id=\"{entity.Name}Collapse\">");
 
-        stringBuilder
-            .AppendLine("\t\t\t</abp-collapse-body>");
+        indentationLevel++;
 
-        stringBuilder
-            .AppendLine("\t\t</abp-dynamic-form>");
+        builder
+            .Append(Indentation)
+            .AppendLine("<div class=\"mt-3\">");
 
-        stringBuilder.AppendLine("\t\t<hr />");
+        indentationLevel++;
+        
+        builder
+            .Append(Indentation)
+            .AppendLine("<abp-form-content />");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</div>");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</abp-collapse-body>");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</abp-dynamic-form>");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<hr />");
 
         // table
-        stringBuilder
-            .Append("\t\t<abp-table ")
+        builder
+            .Append(Indentation)
+            .Append("<abp-table ")
             .Append("striped-rows=\"true\" ")
             .Append($"id=\"{entity.Name}Table\" ")
             .AppendLine("class=\"nowrap\" />");
-        
-        stringBuilder.AppendLine("\t</abp-card-body>");
 
-        stringBuilder.AppendLine("</abp-card>");
-        
-        File.WriteAllText(htmlPage!, stringBuilder.ToString());
+        indentationLevel--;
 
-        return true;
+        builder
+            .Append(Indentation)
+            .AppendLine("</abp-card-body>");
+
+        indentationLevel--;
+
+        builder
+            .AppendLine("</abp-card>");
+        
+        return WriteToFile(htmlPage);
     }
 
     private bool CreateModel()
     {
+        var modelPage = $"{folder}\\Index.cshtml.cs";
+
         if (File.Exists(modelPage))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
-        stringBuilder
+        builder
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Microsoft.AspNetCore.Mvc.RazorPages;")
             .AppendLine($"using {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name}.ViewModels;")
             .AppendLine();
 
-        stringBuilder
+        builder
             .AppendLine($"namespace {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name};")
             .AppendLine();
 
-        stringBuilder
+        builder
             .AppendLine("public class IndexModel : PageModel");
         
-        stringBuilder
+        builder
             .AppendLine("{");
 
-        stringBuilder
-            .Append($"\tpublic {entity.Name}FilterInput? {entity.Name}Filter ")
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .Append($"public {entity.Name}FilterInput? {entity.Name}Filter ")
             .AppendLine("{ get; set; }")
             .AppendLine();
 
-        stringBuilder
-            .AppendLine("\tpublic virtual async Task OnGetAsync()")
-            .AppendLine("\t{")
-            .AppendLine("\t\tawait Task.CompletedTask;")
-            .AppendLine("\t}");
+        builder
+            .Append(Indentation)
+            .AppendLine("public virtual async Task OnGetAsync()");
 
-        stringBuilder
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("await Task.CompletedTask;");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
             .AppendLine("}");
 
-        File.WriteAllText(modelPage!, stringBuilder.ToString());
+        builder
+            .AppendLine("}");
 
-        return true;
+        return WriteToFile(modelPage);
     }
 
     private bool CreateStyle()
     {
-        string filename = $"{folder}\\index.css";
+        var style = $"{folder}\\index.css";
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder!);
-
-        if (File.Exists(filename))
+        if (File.Exists(style))
             return false;
 
-        File.WriteAllText(filename, "");
+        File.WriteAllText(style, "");
 
         return true;
     }
 
     private bool CreateScript()
     {
-        string filename = $"{folder}\\index.js";
+        string script = $"{folder}\\index.js";
         string permissions = $"{entity.ProjectName}.{entity.Name}";
 
         string[] endpointTree = $"{entity.Namespace}.{entity.Pluralized}.{entity.Name}".Split(".");
@@ -226,203 +439,423 @@ public class MvcIndexPageCreator(EntityModel entity)
             endpoint += endpointTree[i].Camelize();
         }
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder!);
-
-        if (File.Exists(filename))
+        if (File.Exists(script))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
-        stringBuilder
+        builder
             .AppendLine("$(function () {");
 
-        stringBuilder
-            .Append($"\t$(\"#{entity.Name}Filter :input\").on('input', function ()")
-            .AppendLine(" {")
-            .AppendLine("\t\tdataTable.ajax.reload();")
-            .AppendLine("\t});")
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .Append($"$(\"#{entity.Name}Filter :input\").on('input', function ()")
+            .AppendLine(" {");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("dataTable.ajax.reload();");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("});")
             .AppendLine();
 
-        stringBuilder
-            .AppendLine("\tvar getFilter = function () {")
-            .AppendLine("\t\tvar input = {};")
-            .AppendLine($"\t\t$('#{entity.Name}Filter')")
-            .AppendLine("\t\t\t.serializeArray()")
-            .AppendLine("\t\t\t.forEach(function (data) {")
-            .AppendLine("\t\t\t\tif (data.value != '') {")
-            .AppendLine($"\t\t\t\t\tinput[abp.utils.toCamelCase(data.name.replace(/{entity.Name}Filter./g, ''))] = data.value;")
-            .AppendLine("\t\t\t\t}")
-            .AppendLine("\t\t\t})")
-            .AppendLine("\t\treturn input;")
-            .AppendLine("\t};")
+        builder
+            .Append(Indentation)
+            .AppendLine("var getFilter = function () {");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("var input = {};");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"$('#{entity.Name}Filter')");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine(".serializeArray()");
+
+        builder
+            .Append(Indentation)
+            .AppendLine(".forEach(function (data) {");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("if (data.value != '') {");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"input[abp.utils.toCamelCase(data.name.replace(/{entity.Name}Filter./g, ''))] = data.value;");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("})");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("return input;");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("};")
             .AppendLine();
 
-        stringBuilder
-            .Append("\tvar l = abp.localization.getResource('")
+        builder
+            .Append(Indentation)
+            .Append("var l = abp.localization.getResource('")
             .Append(entity.ProjectName)
             .AppendLine("');");
 
-        stringBuilder
-            .AppendLine($"\tvar service = {endpoint};");
+        builder
+            .Append(Indentation)
+            .AppendLine($"var service = {endpoint};");
 
-        stringBuilder
-            .Append("\tvar createModal = new abp.ModalManager(abp.appPath + '")
+        builder
+            .Append(Indentation)
+            .Append("var createModal = new abp.ModalManager(abp.appPath + '")
             .AppendLine($"{entity.Pluralized}/{entity.Name}/CreateModal')");
 
-        stringBuilder
-            .Append("\tvar editModal = new abp.ModalManager(abp.appPath + '")
+        builder
+            .Append(Indentation)
+            .Append("var editModal = new abp.ModalManager(abp.appPath + '")
             .AppendLine($"{entity.Pluralized}/{entity.Name}/EditModal')");
 
-        stringBuilder.AppendLine();
+        builder
+            .AppendLine();
 
-        stringBuilder
-            .Append("\tvar dataTable = ")
+        builder
+            .Append(Indentation)
+            .Append("var dataTable = ")
             .Append($"$('#{entity.Name}Table').DataTable(")
             .AppendLine("abp.libs.datatables.normalizeConfiguration({");
 
-        stringBuilder
-            .AppendLine("\t\tprocessing: true,")
-            .AppendLine("\t\tserverSide: true,")
-            .AppendLine("\t\tpaging: true,")
-            .AppendLine("\t\tsearching: false,")
-            .AppendLine("\t\tautoWidth: false,")
-            .AppendLine("\t\tscrollCollapse: true,")
-            .AppendLine("\t\torder: [[0, \"asc\"]],")
-            .Append("\t\tajax: abp.libs.datatables.createAjax(")
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("processing: true,");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("serverSide: true,");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("paging: true,");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("searching: false,");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("autoWidth: false,");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("scrollCollapse: true,");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("order: [[0, \"asc\"]],");
+
+        builder
+            .Append(Indentation)
+            .Append("ajax: abp.libs.datatables.createAjax(")
             .AppendLine($"service.getList, getFilter),");
 
-        stringBuilder
-            .AppendLine("\t\tcolumnDefs: [");
+        builder
+            .Append(Indentation)
+            .AppendLine("columnDefs: [");
 
         // Actions
-        stringBuilder
-            .AppendLine("\t\t\t{");
 
-        stringBuilder
-            .AppendLine("\t\t\t\ttitle: l('Actions'),")
-            .AppendLine("\t\t\t\trowAction: {")
-            .AppendLine("\t\t\t\t\titems: [");
+        indentationLevel++;
 
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("title: l('Actions'),");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("rowAction: {");
+
+        indentationLevel++;
+        
+        builder
+            .Append(Indentation)
+            .AppendLine("items: [");
 
         // Edit Action
-        stringBuilder
-            .AppendLine("\t\t\t\t\t\t{");
+        
+        indentationLevel++;
 
-        stringBuilder
-            .AppendLine("\t\t\t\t\t\t\ttext: l('Edit'),");
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
 
-        stringBuilder
-            .Append("\t\t\t\t\t\t\tvisible: abp.auth.isGranted('")
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("text: l('Edit'),");
+
+        builder
+            .Append(Indentation)
+            .Append("visible: abp.auth.isGranted('")
             .AppendLine($"{permissions}.Edit'),");
 
-        stringBuilder
-            .AppendLine("\t\t\t\t\t\t\taction: function (data) {")
-            .AppendLine("\t\t\t\t\t\t\t\teditModal.open({ id: data.record.id });")
-            .AppendLine("\t\t\t\t\t\t\t}");
+        builder
+            .Append(Indentation)
+            .AppendLine("action: function (data) {");
 
-        stringBuilder
-            .AppendLine("\t\t\t\t\t\t},");
+        indentationLevel++;
+        
+        builder
+            .Append(Indentation)
+            .AppendLine("editModal.open({ id: data.record.id });");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("},");
 
         // Delete Action
-        stringBuilder
-            .AppendLine("\t\t\t\t\t\t{");
 
-        stringBuilder
-            .AppendLine("\t\t\t\t\t\t\ttext: l('Delete'),");
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
 
-        stringBuilder
-            .Append("\t\t\t\t\t\t\tvisible: abp.auth.isGranted('")
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("text: l('Delete'),");
+
+        builder
+            .Append(Indentation)
+            .Append("visible: abp.auth.isGranted('")
             .AppendLine($"{permissions}.Delete'),");
 
-        stringBuilder
-            .AppendLine("\t\t\t\t\t\t\tconfirmMessage: function (data) {")
-            .Append("\t\t\t\t\t\t\t\treturn l('")
+        builder
+            .Append(Indentation)
+            .AppendLine("confirmMessage: function (data) {");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .Append("return l('")
             .Append($"{entity.Name}DeletionConfirmationMessage', ")
-            .AppendLine("data.record.id)")
-            .AppendLine("\t\t\t\t\t\t\t},");
+            .AppendLine("data.record.id)");
 
-        stringBuilder
-            .AppendLine("\t\t\t\t\t\t\taction: function (data) {")
-            .AppendLine("\t\t\t\t\t\t\t\tservice.delete(data.record.id)")
-            .AppendLine("\t\t\t\t\t\t\t\t\t.then(function () {")
-            .AppendLine("\t\t\t\t\t\t\t\t\t\tabp.notify.info(l('SuccessfullyDeleted'));")
-            .AppendLine("\t\t\t\t\t\t\t\t\t\tdataTable.ajax.reload();")
-            .AppendLine("\t\t\t\t\t\t\t\t\t});")
-            .AppendLine("\t\t\t\t\t\t\t}")
-            .AppendLine("\t\t\t\t\t\t}");
+        indentationLevel--;
 
-        stringBuilder
-            .AppendLine("\t\t\t\t\t]");
+        builder
+            .Append(Indentation)
+            .AppendLine("},");
 
-        stringBuilder
-            .AppendLine("\t\t\t\t}");
+        builder
+            .Append(Indentation)
+            .AppendLine("action: function (data) {");
 
-        stringBuilder
-            .Append("\t\t\t}");
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("service.delete(data.record.id)");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine(".then(function () {");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("abp.notify.info(l('SuccessfullyDeleted'));");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("dataTable.ajax.reload();");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("});");
+
+        indentationLevel -= 2;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("]");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .Append('}');
 
         // Properties
         foreach (var property in entity.Properties!)
         {
-            if (property.IsCollection || 
-                property.Type == BaseTypes.Entity || 
-                property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregateRoot)
+            if (property.IsCollection || BaseTypeHelper.IsEntityType(property.Type!))
                 continue;
 
-            stringBuilder.AppendLine(",");
+            builder
+                .AppendLine(",");
 
-            stringBuilder
-                .AppendLine("\t\t\t{")
-                .Append("\t\t\t\ttitle: ")
-                .AppendLine($"l('{entity.Name}{property.Name}'),")
-                .Append("\t\t\t\tdata: ")
+            builder
+                .Append(Indentation)
+                .AppendLine("{");
+
+            indentationLevel++;
+
+            builder
+                .Append(Indentation)
+                .Append("title: ")
+                .AppendLine($"l('{entity.Name}{property.Name}'),");
+
+            indentationLevel--;
+
+            builder
+                .Append(Indentation)
+                .Append("data: ")
                 .Append($"l('{property.Name.Camelize()}')");
 
             if (property.Type!.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
             {
-                stringBuilder
+                indentationLevel++;
+
+                builder
+                    .Append(Indentation)
                     .AppendLine(",")
-                    .AppendLine("\t\t\t\tdataFormat: \"date\"");
+                    .AppendLine("dataFormat: \"date\"");
+
+                indentationLevel--;
             }
             else
             {
-                stringBuilder.AppendLine("");
+                builder.AppendLine("");
             }
 
-            stringBuilder
-                .Append("\t\t\t}");
+            builder
+                .Append(Indentation)
+                .Append('}');
         }
 
-        stringBuilder.AppendLine();
-
-        stringBuilder
-            .AppendLine("\t\t]");
-
-        stringBuilder
-            .AppendLine("\t}));")
+        builder
             .AppendLine();
 
-        stringBuilder
-            .AppendLine("\tcreateModal.onResult(() => dataTable.ajax.reload());")
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("]");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}));")
             .AppendLine();
 
-        stringBuilder
-            .AppendLine("\teditModal.onResult(() => dataTable.ajax.reload());")
+        builder
+            .Append(Indentation)
+            .AppendLine("createModal.onResult(() => dataTable.ajax.reload());")
             .AppendLine();
 
-        stringBuilder
-            .Append($"\t$('#New{entity.Name}Button')")
-            .AppendLine(".click((e) => {")
-            .AppendLine("\t\te.preventDefault();")
-            .AppendLine("\t\tcreateModal.open();")
-            .AppendLine("\t});");
+        builder
+            .Append(Indentation)
+            .AppendLine("editModal.onResult(() => dataTable.ajax.reload());")
+            .AppendLine();
 
-        stringBuilder
+        builder
+            .Append(Indentation)
+            .Append($"$('#New{entity.Name}Button')")
+            .AppendLine(".click((e) => {");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("e.preventDefault();");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("createModal.open();");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
             .AppendLine("});");
 
-        File.WriteAllText(filename, stringBuilder.ToString());
+        builder
+            .AppendLine("});");
 
-        return true;
+        return WriteToFile(script);
     }
 }

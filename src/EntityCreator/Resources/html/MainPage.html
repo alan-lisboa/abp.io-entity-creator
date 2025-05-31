@@ -506,7 +506,7 @@
         function removeProperty(e) {
             var index = $(e).closest("tr").find("th").text();
 
-            entityModel.properties = entityModel.Properties.filter(function (item) {
+            entityModel.Properties = entityModel.Properties.filter(function (item) {
                 return item.Index != index;
             });
 

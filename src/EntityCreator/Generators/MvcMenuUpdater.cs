@@ -3,11 +3,9 @@ using System.Text;
 
 namespace EntityCreator.Generators
 {
-    public class MvcMenuUpdater(EntityModel entity)
+    public class MvcMenuUpdater(EntityModel entity) : BaseGenerator
     {
-        private string? folder;
-
-        public bool Update()
+        public override bool Handle()
         {
             folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Menus";
 
@@ -23,18 +21,19 @@ namespace EntityCreator.Generators
 
         private bool UpdateMenu()
         {
-            string artifactName = $"{entity.ProjectName}Menus";
-            string filename = $"{folder}\\{artifactName}.cs";
+            artifactName = $"{entity.ProjectName}Menus";
+            filename = $"{folder}\\{artifactName}.cs";
 
             if (!File.Exists(filename))
                 return false;
 
+            Initialize();
+
             using StreamReader readerForContent = new(filename);
             var content = readerForContent.ReadToEnd();
             bool hasApplicationMenu = content.Contains("public const string Application");
-            readerForContent.Close();
 
-            StringBuilder stringBuilder = new();
+            readerForContent.Close();
 
             using StreamReader reader = new(filename);
             string? line = reader.ReadLine();
@@ -45,44 +44,47 @@ namespace EntityCreator.Generators
                 {
                     if (!hasApplicationMenu)
                     {
-                        stringBuilder
+                        builder
                             .AppendLine("\tpublic const string Application = Prefix + \".Application\";");
                     }
 
-                    stringBuilder
-                        .Append("\tpublic const string ")
+                    indentationLevel++;
+                    
+                    builder
+                        .Append(Indentation)
+                        .Append("public const string ")
                         .Append(entity.Name)
                         .Append(" = Prefix + \".")
                         .Append(entity.Name)
                         .AppendLine("\";");
                 }
                 
-                stringBuilder.AppendLine(line);
+                builder
+                    .AppendLine(line);
                 
                 line = reader.ReadLine();
             }
 
             reader.Close();
 
-            File.WriteAllText(filename, stringBuilder.ToString());
-
-            return true;
+            return WriteToFile();
         }
 
         private bool UpdateMenuContributor()
         {
-            string artifactName = $"{entity.ProjectName}MenuContributor";
-            string filename = $"{folder}\\{artifactName}.cs";
+            artifactName = $"{entity.ProjectName}MenuContributor";
+            filename = $"{folder}\\{artifactName}.cs";
 
             if (!File.Exists(filename))
                 return false;
+            
+            Initialize();
 
             using StreamReader readerForContent = new(filename);
             var content = readerForContent.ReadToEnd();
             bool hasApplicationMenu = content.Contains("var application = new ApplicationMenuItem(");
+            
             readerForContent.Close();
-
-            StringBuilder stringBuilder = new();
 
             using StreamReader reader = new(filename);
             string? line = reader.ReadLine();
@@ -93,44 +95,91 @@ namespace EntityCreator.Generators
                 {
                     if (!hasApplicationMenu)
                     {
-                        stringBuilder
-                            .AppendLine("\t\t//Application")
-                            .AppendLine("\t\tvar application = new ApplicationMenuItem(")
-                            .AppendLine($"\t\t\t{entity.ProjectName}Menus.Application,")
-                            .AppendLine("\t\t\tl[\"Menu:Application\"],")
-                            .AppendLine("\t\t\ticon: \"fa-solid fa-bars-staggered\",")
-                            .AppendLine("\t\t\torder: 6")
-                            .AppendLine("\t\t);")
-                            .AppendLine()
-                            .AppendLine("\t\tcontext.Menu.AddItem(application);")
+                        indentationLevel = 2;
+
+                        builder
+                            .Append(Indentation)
+                            .AppendLine("//Application");
+
+                        builder
+                            .Append(Indentation)
+                            .AppendLine("var application = new ApplicationMenuItem(");
+
+                        indentationLevel++;
+
+                        builder
+                            .Append(Indentation)
+                            .AppendLine($"{entity.ProjectName}Menus.Application,");
+
+                        builder
+                            .Append(Indentation)
+                            .AppendLine("l[\"Menu:Application\"],");
+
+                        builder
+                            .Append(Indentation)
+                            .AppendLine("icon: \"fa-solid fa-bars-staggered\",");
+
+                        builder
+                            .Append(Indentation)
+                            .AppendLine("order: 6");
+
+                        indentationLevel--;
+
+                        builder
+                            .Append(Indentation)
+                            .AppendLine(");")
+                            .AppendLine();
+
+                        builder
+                            .Append(Indentation)
+                            .AppendLine("context.Menu.AddItem(application);")
                             .AppendLine();
                     }
 
-                    stringBuilder
-                        .AppendLine("\t\tapplication.AddItem(")
-                        .AppendLine($"\t\t\tnew ApplicationMenuItem(")
-                        .Append($"\t\t\t\t{entity.ProjectName}Menus.{entity.Name}, ")
+                    builder
+                        .Append(Indentation)
+                        .AppendLine("application.AddItem(");
+
+                    indentationLevel++;
+
+                    builder
+                        .Append(Indentation)
+                        .AppendLine($"new ApplicationMenuItem(");
+
+                    indentationLevel++;
+
+                    builder
+                        .Append(Indentation)
+                        .Append($"{entity.ProjectName}Menus.{entity.Name}, ");
+
+                    builder
                         .Append($"l[\"Menu:{entity.Name}\"], ")
                         .Append($"url: \"/{entity.Pluralized}/{entity.Name}\", ")
-                        .AppendLine($"icon: \"fa-solid fa-arrow-up-right-from-square\"")
-                        .AppendLine("\t\t\t)")
-                        .Append("\t\t).RequirePermissions(")
+                        .AppendLine($"icon: \"fa-solid fa-arrow-up-right-from-square\"");
+
+                    builder
+                        .Append(Indentation)
+                        .AppendLine(")");
+
+                    indentationLevel--;
+
+                    builder
+                        .Append(Indentation)
+                        .Append(").RequirePermissions(")
                         .Append($"{entity.ProjectName}Permissions.")
                         .Append(entity.Name)
                         .AppendLine(".Default);")
                         .AppendLine();
                 }
 
-                stringBuilder.AppendLine(line);
+                builder.AppendLine(line);
 
                 line = reader.ReadLine();
             }
 
             reader.Close();
 
-            File.WriteAllText(filename, stringBuilder.ToString());
-
-            return true;
+            return WriteToFile();
         }
     }
 }

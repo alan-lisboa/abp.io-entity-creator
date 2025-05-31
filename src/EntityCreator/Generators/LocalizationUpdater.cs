@@ -1,13 +1,12 @@
-﻿using EntityCreator.Models;
+﻿using EntityCreator.Helpers;
+using EntityCreator.Models;
 using System.Text;
 
 namespace EntityCreator.Generators
 {
-    public class LocalizationUpdater(EntityModel entity)
+    public class LocalizationUpdater(EntityModel entity) : BaseGenerator
     {
-        private string? folder;
-        
-        public bool Update()
+        public override bool Handle()
         {
             folder = $"{entity.Location}\\src\\{entity.Namespace}.Domain.Shared\\Localization\\{entity.ProjectName}";
 
@@ -29,15 +28,15 @@ namespace EntityCreator.Generators
             if (!File.Exists(file))
                 return;
 
-            var lang = file
+            Initialize();
+
+            var language = file
                 .Replace(folder!, "")
                 .Replace("\\", "")
                 .Replace(".json", "");
 
             var definition = entity.Localizations?
-                .FirstOrDefault(x => x.Language == lang);
-
-            StringBuilder stringBuilder = new();
+                .FirstOrDefault(x => x.Language == language);
 
             using var reader = new StreamReader(file);
             var line = reader.ReadLine();
@@ -50,10 +49,7 @@ namespace EntityCreator.Generators
                 if (line.Contains("\"texts\":"))
                 {
                     isSession = true;
-
-                    stringBuilder
-                        .AppendLine(line);
-
+                    builder.AppendLine(line);
                     line = reader.ReadLine();
 
                     continue;
@@ -61,7 +57,7 @@ namespace EntityCreator.Generators
 
                 if (!line.TrimEnd().EndsWith('}') && !line.TrimEnd().EndsWith(',') && isSession)
                 {
-                    stringBuilder
+                    builder
                         .Append(line)
                         .AppendLine(",");
 
@@ -80,78 +76,76 @@ namespace EntityCreator.Generators
                     var permissionDelete = definition?.Delete ?? "Delete";
                     var menuEntry = definition?.PluralizedName ?? entity.Pluralized;
                     var createEntity = $"{definition?.Create} {definition?.EntityName}";
+                    var editEntity = $"{definition?.Edit} {definition?.EntityName}";
+                    var deletionMessage = $"{definition?.DeletionMessage}";
+
                     if (string.IsNullOrEmpty(createEntity.Trim()))
                         createEntity = "Create";
 
-                    var editEntity = $"{definition?.Edit} {definition?.EntityName}";
                     if (string.IsNullOrEmpty(editEntity.Trim()))
                         editEntity = "Edit";
-
-                    var deletionMessage = $"{definition?.DeletionMessage}";
+                    
                     if (string.IsNullOrEmpty(deletionMessage.Trim()))
                         deletionMessage = $"Are you sure to delete the {entity.Name} " + "{0}?";
 
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"Permission:{entity.Name}\": ")
                         .AppendLine($"\"{entityName}\",");
 
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"Permission:{entity.Name}.Create\": ")
                         .AppendLine($"\"{permissionCreate}\",");
                     
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"Permission:{entity.Name}.Edit\": ")
                         .AppendLine($"\"{permissionEdit}\",");
                     
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"Permission:{entity.Name}.Delete\": ")
                         .AppendLine($"\"{permissionDelete}\",");
 
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"Menu:{entity.Name}\": ")
                         .AppendLine($"\"{menuEntry}\",");
 
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"{entity.Name}\": ")
                         .AppendLine($"\"{entityName}\",");
 
                     foreach (var property in entity.Properties!)
                     {
-                        if (property.IsCollection ||
-                            property.Type == "Entity" ||
-                            property.Type == "ValueObject" ||
-                            property.Type == "AggregateRoot")
+                        if (property.IsCollection || BaseTypeHelper.IsEntityType(property.Type!))
                             continue;
 
                         var propertyDefinition = definition?.Properties?.Find(x => x.Property == property.Name);
                         var propertyName = propertyDefinition?.Translation ?? property.Name;
 
-                        stringBuilder
+                        builder
                             .Append($"{indent}\"{entity.Name}{property.Name}\": ")
                             .AppendLine($"\"{propertyName}\",");
                     }
 
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"Create{entity.Name}\": ")
                         .AppendLine($"\"{createEntity}\",");
 
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"Edit{entity.Name}\": ")
                         .AppendLine($"\"{editEntity}\",");
 
-                    stringBuilder
+                    builder
                         .Append($"{indent}\"{entity.Name}DeletionConfirmationMessage\": ")
                         .AppendLine($"\"{deletionMessage}\"");
                 }
 
-                stringBuilder.AppendLine(line);
+                builder.AppendLine(line);
                 
                 line = reader.ReadLine();
             }
 
             reader.Close();
 
-            File.WriteAllText(file, stringBuilder.ToString());
+            WriteToFile(file);
         }
     }
 }

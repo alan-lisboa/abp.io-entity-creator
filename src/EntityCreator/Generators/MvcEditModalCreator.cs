@@ -1,31 +1,27 @@
-﻿using EntityCreator.Models;
+﻿using EntityCreator.Helpers;
+using EntityCreator.Models;
 using Humanizer;
 using System.Text;
 
 namespace EntityCreator.Generators;
 
-public class MvcEditModalCreator(EntityModel entity)
+public class MvcEditModalCreator(EntityModel entity) : BaseGenerator
 {
-    private string? folder;
-    private string? htmlFile;
-    private string? modelFile;
     private string? appServiceName;
     private string? entityDto;
     private string? createDto;
     private string? viewModel;
 
-    public bool Create()
+    public override bool Handle()
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Pages\\{entity.Pluralized}\\{entity.Name}";
-        htmlFile = $"{folder}\\EditModal.cshtml";
-        modelFile = $"{folder}\\EditModal.cshtml.cs";
+        
         appServiceName = $"{entity.Name}AppService";
         entityDto = $"{entity.Name}Dto";
         createDto = $"CreateUpdate{entity.Name}Dto";
         viewModel = $"CreateEdit{entity.Name}ViewModel";
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+        CreateDirectory(folder);
 
         if (!CreatePage())
             return false;
@@ -38,110 +34,173 @@ public class MvcEditModalCreator(EntityModel entity)
 
     private bool CreatePage()
     {
+        var htmlFile = $"{folder}\\EditModal.cshtml";
+
         if (File.Exists(htmlFile))
             return false;
 
         var mainProperties = entity.Properties!
-            .Where(p => !BaseTypes.IsAggregatedChild(p.Type!));
+            .Where(p => !BaseTypeHelper.IsAggregatedChild(p.Type!));
 
         var secondaryProperties = entity.Properties!
-            .Where(p => BaseTypes.IsAggregatedChild(p.Type!));
-
-        StringBuilder stringBuilder = new();
+            .Where(p => BaseTypeHelper.IsAggregatedChild(p.Type!));
 
         // usings
-        stringBuilder
+        builder
             .AppendLine("@page")
             .AppendLine($"@using {entity.Namespace}.Localization")
             .AppendLine("@using Microsoft.AspNetCore.Mvc.Localization")
             .AppendLine("@using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Modal");
 
         // inject
-        stringBuilder
+        builder
             .Append("@inject IHtmlLocalizer")
             .AppendLine($"<{entity.ProjectName}Resource> L");
 
         // model
-        stringBuilder
+        builder
             .AppendLine($"@model {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name}.EditModalModel");
+        
+        builder
+            .AppendLine("@{");
 
-        stringBuilder
-            .AppendLine("@{")
-            .AppendLine("\tLayout = null;")
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("Layout = null;");
+
+        indentationLevel--;
+
+        builder
             .AppendLine("}");
-
-        stringBuilder
+        
+        builder
             .Append("<form method=\"post\" ")
             .AppendLine($"action=\"@Url.Page(\"/{entity.Pluralized}/{entity.Name}/EditModal\")\">");
 
-        stringBuilder.AppendLine("\t<abp-modal>");
-        stringBuilder.AppendLine($"\t\t<abp-modal-header title=\"@L[\"Edit{entity.Name}\"].Value\"></abp-modal-header>");
-        stringBuilder.AppendLine("\t\t<abp-modal-body>");
-        stringBuilder.AppendLine("\t\t\t<abp-input asp-for=\"Id\" />");
+        indentationLevel++;
 
-        string indent = new('\t', 3);
+        builder
+            .Append(Indentation)
+            .AppendLine("<abp-modal>");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"<abp-modal-header title=\"@L[\"Edit{entity.Name}\"].Value\"></abp-modal-header>");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<abp-modal-body>");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("<abp-input asp-for=\"Id\" />");
 
         if (secondaryProperties.Any())
         {
-            stringBuilder.AppendLine("\t\t\t<abp-tabs>");
-            stringBuilder.AppendLine("\t\t\t\t<abp-tab title=\"@L[\"Home\"].Value\">");
-            indent = new string('\t', 5);
+            builder
+                .Append(Indentation)
+                .AppendLine("<abp-tabs>");
+
+            indentationLevel++;
+
+            builder
+                .Append(Indentation)
+                .AppendLine("<abp-tab title=\"@L[\"Home\"].Value\">");
         }
+
+        indentationLevel++;
 
         foreach (var property in mainProperties)
         {
-            stringBuilder
-                .Append($"{indent}<abp-input ")
+            builder
+                .Append(Indentation)
+                .Append("<abp-input ")
                 .AppendLine($"asp-for=\"ViewModel.{property.Name}\" />");
         }
 
+        indentationLevel--;
+
         if (secondaryProperties.Any())
-            stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
+        {
+            builder
+                .Append(Indentation)
+                .AppendLine("</abp-tab>");
+        }
 
         foreach (var property in secondaryProperties)
         {
-            stringBuilder
-                .Append("\t\t\t\t<abp-tab title=\"@L[\"")
+            builder
+                .Append(Indentation)
+                .Append("<abp-tab title=\"@L[\"")
                 .Append(property.Name)
                 .AppendLine("\"].Value\">");
 
+            indentationLevel++;
+
             foreach (var subProperty in property.Properties!)
             {
-                stringBuilder
-                    .Append("\t\t\t\t\t<abp-input ")
+                builder
+                    .Append(Indentation)
+                    .Append("<abp-input ")
                     .AppendLine($"asp-for=\"ViewModel.{property.Name}.{subProperty.Name}\" />");
             }
 
-            stringBuilder.AppendLine("\t\t\t\t</abp-tab>");
+            indentationLevel--;
+
+            builder
+                .Append(Indentation)
+                .AppendLine("</abp-tab>");
         }
 
-        if (secondaryProperties.Any())
-            stringBuilder.AppendLine("\t\t\t</abp-tabs>");
+        indentationLevel--;
 
-        stringBuilder.AppendLine("\t\t</abp-modal-body>");
+        if (secondaryProperties.Any())
+        {
+            builder
+                .Append(Indentation)
+                .AppendLine("</abp-tabs>");
+        }
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("</abp-modal-body>");
         
-        stringBuilder
-            .Append("\t\t<abp-modal-footer ")
+        builder
+            .Append(Indentation)
+            .Append("<abp-modal-footer ")
             .Append("buttons=\"@(AbpModalButtons.Cancel|AbpModalButtons.Save)\">")
             .AppendLine("</abp-modal-footer>");
 
-        stringBuilder.AppendLine("\t</abp-modal>");
+        indentationLevel--;
 
-        stringBuilder.AppendLine("</form>");
+        builder
+            .Append(Indentation)
+            .AppendLine("</abp-modal>");
 
-        File.WriteAllText(htmlFile!, stringBuilder.ToString());
+        builder
+            .AppendLine("</form>");
 
-        return true;
+        return WriteToFile(htmlFile);
     }
 
     private bool CreateModel()
     {
+        var modelFile = $"{folder}\\EditModal.cshtml.cs";
+
         if (File.Exists(modelFile))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
-        stringBuilder
+        builder
             .AppendLine("using System;")
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Microsoft.AspNetCore.Mvc;")
@@ -150,61 +209,125 @@ public class MvcEditModalCreator(EntityModel entity)
             .AppendLine($"using {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name}.ViewModels;")
             .AppendLine();
 
-        stringBuilder
+        builder
             .AppendLine($"namespace {entity.Namespace}.Web.Pages.{entity.Pluralized}.{entity.Name};")
             .AppendLine();
 
-        stringBuilder
+        builder
             .Append("public class EditModalModel : ")
             .AppendLine($"{entity.ProjectName}PageModel");
 
-        stringBuilder
+        builder
             .AppendLine("{");
 
-        stringBuilder
-            .AppendLine("\t[HiddenInput]")
-            .AppendLine("\t[BindProperty(SupportsGet = true)]")
-            .AppendLine("\tpublic Guid Id { get; set; }")
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("[HiddenInput]");
+        
+        builder
+            .Append(Indentation)
+            .AppendLine("[BindProperty(SupportsGet = true)]");
+        
+        builder
+            .Append(Indentation)
+            .AppendLine("public Guid Id { get; set; }")
             .AppendLine();
 
-        stringBuilder
-            .AppendLine("\t[BindProperty]")
-            .Append($"\tpublic {viewModel} ViewModel ")
+        builder
+            .Append(Indentation)
+            .AppendLine("[BindProperty]");
+
+        builder
+            .Append(Indentation)
+            .Append($"public {viewModel} ViewModel ")
             .AppendLine("{ get; set; }")
             .AppendLine();
 
-        stringBuilder
-            .AppendLine($"\tprivate readonly I{appServiceName} _service;")
+        builder
+            .Append(Indentation)
+            .AppendLine($"private readonly I{appServiceName} _service;")
             .AppendLine();
 
-        stringBuilder
-            .Append("\tpublic EditModalModel")
-            .AppendLine($"(I{appServiceName} service)")
-            .AppendLine("\t{")
-            .AppendLine($"\t\t_service = service;")
-            .AppendLine("\t}")
+        builder
+            .Append(Indentation)
+            .Append("public EditModalModel")
+            .AppendLine($"(I{appServiceName} service)");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"_service = service;");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}")
             .AppendLine();
 
-        stringBuilder
-            .AppendLine("\tpublic async Task OnGetAsync()")
-            .AppendLine("\t{")
-            .AppendLine("\t\tvar dto = await _service.GetAsync(Id);")
-            .AppendLine($"\t\tViewModel = ObjectMapper.Map<{entityDto}, {viewModel}>(dto);")
-            .AppendLine("\t}");
+        builder
+            .Append(Indentation)
+            .AppendLine("public async Task OnGetAsync()");
 
-        stringBuilder
-            .AppendLine("\tpublic async Task<IActionResult> OnPostAsync()")
-            .AppendLine("\t{")
-            .AppendLine($"\t\tvar dto = ObjectMapper.Map<{viewModel}, {createDto}>(ViewModel);")
-            .AppendLine($"\t\tawait _service.UpdateAsync(Id, dto);")
-            .AppendLine("\t\treturn NoContent();")
-            .AppendLine("\t}");
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
 
-        stringBuilder
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("var dto = await _service.GetAsync(Id);");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"ViewModel = ObjectMapper.Map<{entityDto}, {viewModel}>(dto);");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}")
+            .AppendLine();
+
+        builder
+            .Append(Indentation)
+            .AppendLine("public async Task<IActionResult> OnPostAsync()");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"var dto = ObjectMapper.Map<{viewModel}, {createDto}>(ViewModel);");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"await _service.UpdateAsync(Id, dto);");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("return NoContent();");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
             .AppendLine("}");
 
-        File.WriteAllText(modelFile!, stringBuilder.ToString());
+        builder
+            .AppendLine("}");
 
-        return true;
+        return WriteToFile(modelFile);
     }
 }

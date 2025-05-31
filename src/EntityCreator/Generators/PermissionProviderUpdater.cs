@@ -4,21 +4,20 @@ using System.Text;
 
 namespace EntityCreator.Generators;
 
-public class PermissionProviderUpdater(EntityModel entity)
+public class PermissionProviderUpdater(EntityModel entity) : BaseGenerator
 {
-    public bool Update()
+    public override bool Handle()
     {
-        string artifactName = $"{entity.ProjectName}PermissionDefinitionProvider";
-        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Permissions";
-        string filename = $"{folder}\\{artifactName}.cs";
-        string permissions = $"{entity.ProjectName}Permissions.{entity.Name}";
-        string localizer = $"Permission:{entity.Name}";
-        string obj = $"{entity.Pluralized.Camelize()}Permission";
+        artifactName = $"{entity.ProjectName}PermissionDefinitionProvider";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Permissions";
+        filename = $"{folder}\\{artifactName}.cs";
 
         if (!File.Exists(filename))
             return false;
 
-        StringBuilder stringBuilder = new();
+        string permissions = $"{entity.ProjectName}Permissions.{entity.Name}";
+        string localizer = $"Permission:{entity.Name}";
+        string obj = $"{entity.Pluralized.Camelize()}Permission";
 
         using StreamReader reader = new(filename);
         string line = reader.ReadLine()!;
@@ -32,9 +31,14 @@ public class PermissionProviderUpdater(EntityModel entity)
 
             if (line.TrimEnd().EndsWith('}') && foundGroup)
             {
-                stringBuilder
-                    .AppendLine()
-                    .Append("\t\tvar ")
+                indentationLevel = 2;
+
+                builder
+                    .AppendLine();
+
+                builder
+                    .Append(Indentation)
+                    .Append("var ")
                     .Append(obj)
                     .Append(" = myGroup.AddPermission(")
                     .Append(permissions)
@@ -42,8 +46,8 @@ public class PermissionProviderUpdater(EntityModel entity)
                     .Append(localizer)
                     .AppendLine("\"));");
                     
-                stringBuilder
-                    .Append("\t\t")
+                builder
+                    .Append(Indentation)
                     .Append(obj)
                     .Append(".AddChild(")
                     .Append(permissions)
@@ -51,8 +55,8 @@ public class PermissionProviderUpdater(EntityModel entity)
                     .Append(localizer)
                     .AppendLine(".Create\"));");
 
-                stringBuilder
-                    .Append("\t\t")
+                builder
+                    .Append(Indentation)
                     .Append(obj)
                     .Append(".AddChild(")
                     .Append(permissions)
@@ -60,7 +64,7 @@ public class PermissionProviderUpdater(EntityModel entity)
                     .Append(localizer)
                     .AppendLine(".Edit\"));");
 
-                stringBuilder
+                builder
                     .Append("\t\t")
                     .Append(obj)
                     .Append(".AddChild(")
@@ -70,18 +74,17 @@ public class PermissionProviderUpdater(EntityModel entity)
                     .AppendLine(".Delete\"));");
 
                 foundGroup = false;
+
+                indentationLevel = 0;
             }
 
-            stringBuilder.AppendLine(line);
+            builder.AppendLine(line);
 
             line = reader.ReadLine()!;
         }
 
         reader.Dispose();
 
-        File.WriteAllText(filename, stringBuilder.ToString());
-
-        return true;
+        return WriteToFile();
     }
-
 }

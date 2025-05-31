@@ -4,11 +4,9 @@ using System.Text;
 
 namespace EntityCreator.Generators;
 
-public class EFContextUpdater(EntityModel entity)
+public class EFContextUpdater(EntityModel entity) : BaseGenerator
 {
-    string? folder;
-
-    public bool Update()
+    public override bool Handle()
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.EntityFrameworkCore\\EntityFrameworkCore";
 
@@ -21,13 +19,13 @@ public class EFContextUpdater(EntityModel entity)
 
     public bool UpdateContext()
     {
-        string artifactName = $"{entity.ProjectName}DbContext";
-        string filename = $"{folder}\\{artifactName}.cs";
+        artifactName = $"{entity.ProjectName}DbContext";
+        filename = $"{folder}\\{artifactName}.cs";
 
         if (!File.Exists(filename))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
         bool modelCreating = false;
         bool isUsing = true;
@@ -39,7 +37,7 @@ public class EFContextUpdater(EntityModel entity)
         {
             if (!line.Contains("using") && isUsing)
             {
-                stringBuilder
+                builder
                     .AppendLine($"using {entity.Namespace}.{entity.Pluralized};");
 
                 isUsing = false;
@@ -47,8 +45,11 @@ public class EFContextUpdater(EntityModel entity)
 
             if (line.Contains($"public {artifactName}"))
             {
-                stringBuilder
-                    .Append("\tpublic DbSet<")
+                indentationLevel++;
+
+                builder
+                    .Append(Indentation)
+                    .Append("public DbSet<")
                     .Append(entity.Name)
                     .Append("> ")
                     .Append(entity.Pluralized)
@@ -59,14 +60,16 @@ public class EFContextUpdater(EntityModel entity)
             if (line.Contains("protected override void OnModelCreating"))
                 modelCreating = true;
 
-            if (line.TrimEnd().EndsWith("}") && modelCreating)
+            if (line.TrimEnd().EndsWith('}') && modelCreating)
             {
-                stringBuilder.AppendLine();
+                builder.AppendLine();
 
-                stringBuilder
+                builder
                     .Append("\t\tbuilder.Entity<")
                     .Append(entity.Name)
-                    .AppendLine(">(b =>")
+                    .AppendLine(">(b =>");
+
+                builder
                     .AppendLine("\t\t{")
                     .Append("\t\t\tb.ToTable(")
                     .Append(entity.ProjectName)
@@ -82,20 +85,20 @@ public class EFContextUpdater(EntityModel entity)
                     // required
                     if (property.Size > 0 || property.IsRequired)
                     {
-                        stringBuilder
+                        builder
                             .Append("\t\t\tb.Property(x => x.")
                             .Append(property.Name)
                             .Append(')');
                         
                         if (property.Size > 0)
                         {
-                            stringBuilder
+                            builder
                                 .Append(".HasMaxLength(")
                                 .Append(property.Size)
                                 .Append(')');
                         }
 
-                        stringBuilder
+                        builder
                             .AppendLine(";");
                     }
 
@@ -104,7 +107,7 @@ public class EFContextUpdater(EntityModel entity)
                     {
                         if (property.IsCollection)
                         {
-                            stringBuilder
+                            builder
                                 .Append("\t\t\tb.OwnsMany(x => x.")
                                 .Append(property.Name.Pluralize())
                                 .Append(')')
@@ -118,7 +121,7 @@ public class EFContextUpdater(EntityModel entity)
                         }
                         else
                         {
-                            stringBuilder
+                            builder
                                 .Append("\t\t\tb.OwnsOne(x => x.")
                                 .Append(property.Name)
                                 .AppendLine(");");
@@ -130,7 +133,7 @@ public class EFContextUpdater(EntityModel entity)
                     {
                         if (property.IsCollection)
                         {
-                            stringBuilder
+                            builder
                                 .Append("\t\t\tb.HasMany(x => x.")
                                 .Append(property.Name.Pluralize())
                                 .Append(')')
@@ -141,7 +144,7 @@ public class EFContextUpdater(EntityModel entity)
                         }
                         else
                         {
-                            stringBuilder
+                            builder
                                 .Append("\t\t\tb.HasOne(x => x.")
                                 .Append(property.Name)
                                 .AppendLine(");");
@@ -149,34 +152,34 @@ public class EFContextUpdater(EntityModel entity)
                     }
                 }
 
-                stringBuilder
+                builder
                     .AppendLine("\t\t});")
                     .AppendLine();
 
                 modelCreating = false;
             }
 
-            stringBuilder.AppendLine(line);
+            builder.AppendLine(line);
 
             line = reader.ReadLine()!;
         }
         
         reader.Dispose();
 
-        File.WriteAllText(filename, stringBuilder.ToString());
+        File.WriteAllText(filename, builder.ToString());
 
         return true;
     }
 
     public bool UpdateModule()
     {
-        string artifactName = $"{entity.ProjectName}EntityFrameworkCoreModule";
-        string filename = $"{folder}\\{artifactName}.cs";
+        artifactName = $"{entity.ProjectName}EntityFrameworkCoreModule";
+        filename = $"{folder}\\{artifactName}.cs";
 
         if (!File.Exists(filename))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
         bool addedRepository = false;
         bool isUsing = true;
@@ -188,7 +191,7 @@ public class EFContextUpdater(EntityModel entity)
         {
             if (!line.Contains("using") && isUsing)
             {
-                stringBuilder
+                builder
                     .AppendLine($"using {entity.Namespace}.{entity.Pluralized};");
 
                 isUsing = false;
@@ -199,8 +202,11 @@ public class EFContextUpdater(EntityModel entity)
 
             if (line.TrimEnd().EndsWith("});") && addedRepository)
             {
-                stringBuilder
-                    .Append("\t\t\toptions.AddRepository")
+                indentationLevel = 3;
+
+                builder
+                    .Append(Indentation)
+                    .Append("options.AddRepository")
                     .Append($"<{entity.Name}")
                     .Append(", ")
                     .Append($"{entity.Name}Repository>")
@@ -209,15 +215,13 @@ public class EFContextUpdater(EntityModel entity)
                 addedRepository = false;
             }
 
-            stringBuilder.AppendLine(line);
+            builder.AppendLine(line);
 
             line = reader.ReadLine()!;
         }
 
         reader.Dispose();
 
-        File.WriteAllText(filename, stringBuilder.ToString());
-
-        return true;
+        return WriteToFile();
     }
 }

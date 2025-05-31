@@ -1,19 +1,17 @@
-﻿using EntityCreator.Models;
+﻿using EntityCreator.Helpers;
+using EntityCreator.Models;
 using Humanizer;
 using System.Text;
 
 namespace EntityCreator.Generators;
 
-public class DtosCreator(EntityModel entity)
+public class DtosCreator(EntityModel entity) : BaseGenerator
 {
-    private string? folder;
-
-    public bool Create()
+    public override bool Handle()
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Contracts\\{entity.Pluralized}\\Dtos";
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+        CreateDirectory(folder);
 
         if (!CreateDomainDto())
             return false;
@@ -32,19 +30,20 @@ public class DtosCreator(EntityModel entity)
 
     public bool CreateDomainDto()
     {
-        string artifactName = $"{entity.Name}Dto";
-        string filename = $"{folder}\\{artifactName}.cs";
-
+        artifactName = $"{entity.Name}Dto";
+        filename = $"{folder}\\{artifactName}.cs";
+        
         if (File.Exists(filename))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
-        stringBuilder.AppendLine("using System;");
-        stringBuilder.AppendLine("using Volo.Abp.Application.Dtos;");
-        stringBuilder.AppendLine();
+        builder
+            .AppendLine("using System;")
+            .AppendLine("using Volo.Abp.Application.Dtos;")
+            .AppendLine();
 
-        stringBuilder
+        builder
             .Append("namespace ")
             .Append(entity.Namespace)
             .Append('.')
@@ -52,57 +51,60 @@ public class DtosCreator(EntityModel entity)
             .AppendLine(".Dtos;")
             .AppendLine();
 
-        stringBuilder
+        builder
             .Append("public class ")
             .Append(artifactName)
             .AppendLine(" : FullAuditedEntityDto<Guid>");
 
-        stringBuilder.AppendLine("{");
+        builder.AppendLine("{");
+
+        indentationLevel++;
 
         foreach (var property in entity.Properties!)
         {
             string propertyType = property.Type!;
 
-            if (BaseTypes.IsAggregatedChild(property.Type!))
+            if (BaseTypeHelper.IsAggregatedChild(property.Type!))
                 propertyType = $"{entity.Name}{property.Name!}Dto";
 
-            if (!property.IsRequired && BaseTypes.IsNullable(property.Type!))
+            if (!property.IsRequired && BaseTypeHelper.IsNullable(property.Type!))
                 propertyType += "?";
 
-            stringBuilder
-                .Append("\tpublic ")
+            builder
+                .Append(Indentation)
+                .Append("public ")
                 .Append(propertyType)
                 .Append(' ').Append(property.Name)
                 .Append(" { get; set; }")
                 .AppendLine();
         }
 
-        stringBuilder.AppendLine("}");
+        indentationLevel--;
 
-        File.WriteAllText(filename, stringBuilder.ToString());
+        builder.AppendLine("}");
 
-        return true;
+        return WriteToFile();
     }
 
     private bool CreateUpdateDto()
     {
-        string artifactName = $"CreateUpdate{entity.Name}Dto";
-        string filename = $"{folder}\\{artifactName}.cs";
+        artifactName = $"CreateUpdate{entity.Name}Dto";
+        filename = $"{folder}\\{artifactName}.cs";
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder!);
+        CreateDirectory(folder!);
 
         if (File.Exists(filename))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
-        stringBuilder.AppendLine("using System;");
-        stringBuilder.AppendLine("using System.ComponentModel.DataAnnotations;");
-        stringBuilder.AppendLine("using Volo.Abp.Application.Dtos;");
-        stringBuilder.AppendLine();
+        builder
+            .AppendLine("using System;")
+            .AppendLine("using System.ComponentModel.DataAnnotations;")
+            .AppendLine("using Volo.Abp.Application.Dtos;")
+            .AppendLine();
 
-        stringBuilder
+        builder
             .Append("namespace ")
             .Append(entity.Namespace)
             .Append('.')
@@ -110,81 +112,88 @@ public class DtosCreator(EntityModel entity)
             .AppendLine(".Dtos;")
             .AppendLine();
 
-        stringBuilder
+        builder
             .AppendLine("[Serializable]");
 
-        stringBuilder
+        builder
             .Append("public class ")
             .AppendLine(artifactName);
 
-        stringBuilder.AppendLine("{");
+        builder
+            .AppendLine("{");
+
+        indentationLevel++;
 
         foreach (var property in entity.Properties!)
         {
             string propertyType = property.Type!;
 
-            if (BaseTypes.IsAggregatedChild(property.Type!))
+            if (BaseTypeHelper.IsAggregatedChild(property.Type!))
                 propertyType = $"{entity.Name}{property.Name!}Dto";
 
-            if (!property.IsRequired && BaseTypes.IsNullable(property.Type!))
+            if (!property.IsRequired && BaseTypeHelper.IsNullable(property.Type!))
                 propertyType += "?";
 
             if (property.IsRequired)
             {
-                stringBuilder
-                    .AppendLine("\t[Required]");
+                builder
+                    .Append(Indentation)
+                    .AppendLine("[Required]");
             }
 
-            if (property.Type!.Equals(BaseTypes.String, StringComparison.OrdinalIgnoreCase) && property.Size > 0)
+            if (property.Type!.Equals(BaseTypeHelper.String, StringComparison.OrdinalIgnoreCase) && property.Size > 0)
             {
-                stringBuilder
-                    .Append("\t[StringLength(")
+                builder
+                    .Append(Indentation)
+                    .Append("[StringLength(")
                     .Append(property.Size)
                     .AppendLine(")]");
             }
 
             if (property.Type.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
             {
-                stringBuilder
-                    .AppendLine("\t[DataType(DataType.Date)]");
+                builder
+                    .Append(Indentation)
+                    .AppendLine("[DataType(DataType.Date)]");
             }
             
-            stringBuilder
-                .Append("\tpublic ")
+            builder
+                .Append(Indentation)
+                .Append("public ")
                 .Append(propertyType)
                 .Append(' ').Append(property.Name)
                 .AppendLine(" { get; set; }")
                 .AppendLine();
         }
 
-        stringBuilder.AppendLine("}");
+        indentationLevel--;
 
-        File.WriteAllText(filename, stringBuilder.ToString());
+        builder
+            .AppendLine("}");
 
-        return true;
-
+        return WriteToFile();
     }
 
     private bool CreateListInputDto()
     {
-        string artifactName = $"{entity.Name}GetListInputDto";
-        string filename = $"{folder}\\{artifactName}.cs";
+        artifactName = $"{entity.Name}GetListInputDto";
+        filename = $"{folder}\\{artifactName}.cs";
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder!);
+        CreateDirectory(folder!);
 
         if (File.Exists(filename))
             return false;
 
-        StringBuilder stringBuilder = new();
+        Initialize();
 
-        stringBuilder.AppendLine("using System;");
-        stringBuilder.AppendLine("using System.ComponentModel;");
-        stringBuilder.AppendLine("using System.ComponentModel.DataAnnotations;");
-        stringBuilder.AppendLine("using Volo.Abp.Application.Dtos;");
-        stringBuilder.AppendLine();
+        builder
+            .AppendLine("using System;")
+            .AppendLine("using System.ComponentModel;")
+            .AppendLine("using System.ComponentModel.DataAnnotations;")
+            .AppendLine("using Volo.Abp.Application.Dtos;")
+            .AppendLine();
 
-        stringBuilder
+        builder
             .Append("namespace ")
             .Append(entity.Namespace)
             .Append('.')
@@ -192,22 +201,22 @@ public class DtosCreator(EntityModel entity)
             .AppendLine(".Dtos;")
             .AppendLine();
 
-        stringBuilder
+        builder
             .AppendLine("[Serializable]");
 
-        stringBuilder
+        builder
             .Append("public class ")
             .Append(artifactName)
             .AppendLine(" : PagedAndSortedResultRequestDto");
 
-        stringBuilder.AppendLine("{");
+        builder
+            .AppendLine("{");
+
+        indentationLevel++;
 
         foreach (var property in entity.Properties!)
         {
-            if (property.Type == BaseTypes.Entity || 
-                property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregateRoot || 
-                property.IsCollection)
+            if (BaseTypeHelper.IsEntityType(property.Type!) || property.IsCollection)
                 continue;
 
             string propertyType = property.Type!;
@@ -215,42 +224,43 @@ public class DtosCreator(EntityModel entity)
             if (!property.IsRequired && propertyType == "string")
                 propertyType += "?";
 
-            stringBuilder
-                .Append("\tpublic ")
+            builder
+                .Append(Indentation)
+                .Append("public ")
                 .Append(propertyType)
                 .Append(' ').Append(property.Name)
                 .Append(" { get; set; }")
                 .AppendLine();
         }
 
-        stringBuilder.AppendLine("}");
+        indentationLevel--;
 
-        File.WriteAllText(filename, stringBuilder.ToString());
+        builder.AppendLine("}");
 
-        return true;
-
+        return WriteToFile();
     }
 
     private bool CreateAggregatedChildDto()
     {
         foreach (var entityProperty in entity.Properties!)
         {
-            if (!BaseTypes.IsAggregatedChild(entityProperty.Type!))
+            if (!BaseTypeHelper.IsAggregatedChild(entityProperty.Type!))
                 continue;
 
-            string artifactName = $"{entity.Name}{entityProperty.Name}Dto";
-            string filename = $"{folder}\\{artifactName}.cs";
+            artifactName = $"{entity.Name}{entityProperty.Name}Dto";
+            filename = $"{folder}\\{artifactName}.cs";
 
             if (File.Exists(filename))
                 return false;
 
-            StringBuilder stringBuilder = new();
+            Initialize();
 
-            stringBuilder.AppendLine("using System;");
-            stringBuilder.AppendLine("using Volo.Abp.Application.Dtos;");
-            stringBuilder.AppendLine();
+            builder
+                .AppendLine("using System;")
+                .AppendLine("using Volo.Abp.Application.Dtos;")
+                .AppendLine();
 
-            stringBuilder
+            builder
                 .Append("namespace ")
                 .Append(entity.Namespace)
                 .Append('.')
@@ -258,38 +268,43 @@ public class DtosCreator(EntityModel entity)
                 .AppendLine(".Dtos;")
                 .AppendLine();
 
-            stringBuilder
+            builder
                 .Append("public class ")
                 .Append(artifactName);
 
-            if (entityProperty.Type == BaseTypes.Entity)
-                stringBuilder.AppendLine(" : Entity<Guid>");
+            if (entityProperty.Type == BaseTypeHelper.Entity)
+                builder.AppendLine(" : Entity<Guid>");
             else
-                stringBuilder.AppendLine();
+                builder.AppendLine();
 
-            stringBuilder.AppendLine("{");
+            builder.AppendLine("{");
+
+            indentationLevel++;
 
             foreach (var property in entityProperty.Properties!)
             {
                 string propertyType = property.Type!;
 
-                if (BaseTypes.IsEntityType(property.Type!))
+                if (BaseTypeHelper.IsEntityType(property.Type!))
                     continue;
 
-                if (!property.IsRequired && property.Type! == BaseTypes.String)
+                if (!property.IsRequired && property.Type! == BaseTypeHelper.String)
                     propertyType += "?";
 
-                stringBuilder
-                    .Append("\tpublic ")
+                builder
+                    .Append(Indentation)
+                    .Append("public ")
                     .Append(propertyType)
                     .Append(' ').Append(property.Name)
                     .Append(" { get; set; }")
                     .AppendLine();
             }
 
-            stringBuilder.AppendLine("}");
+            indentationLevel--;
 
-            File.WriteAllText(filename, stringBuilder.ToString());
+            builder.AppendLine("}");
+
+            WriteToFile();
         }
 
         return true;

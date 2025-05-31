@@ -10,75 +10,75 @@ public class EntityGenerator
 
         //Create Domain Model
         ModelCreator modelCreator = new(entity);
-        modelCreator.Create();
+        modelCreator.Handle();
 
         //Create IRepositry Contract
         RepositoryContractCreator repositoryContractCreator = new(entity);
-        repositoryContractCreator.Create();
+        repositoryContractCreator.Handle();
 
         //Create Localization terms
         var localizationUpdater = new LocalizationUpdater(entity);
-        localizationUpdater.Update();
+        localizationUpdater.Handle();
 
         // EF ------------------------------
 
         //Update EntityFramework Context
         EFContextUpdater efContextUpdater = new(entity);
-        efContextUpdater.Update();
+        efContextUpdater.Handle();
 
-        //Create Repositry 
+        //Create Repository 
         EFRepositoryCreator efRepositoryCreator = new(entity);
-        efRepositoryCreator.Create();
+        efRepositoryCreator.Handle();
 
         // Contracts ------------------------------
 
         //Create Dtos
         DtosCreator dtosCreator = new(entity);
-        dtosCreator.Create();
+        dtosCreator.Handle();
 
         //Create IAppService Contract 
         AppServiceContractCreator appServiceContractCreator = new(entity);
-        appServiceContractCreator.Create();
+        appServiceContractCreator.Handle();
 
         //Create Permission Contract 
         PermissionUpdater permissionUpdater = new(entity);
-        permissionUpdater.Update();
+        permissionUpdater.Handle();
 
         //Define Permissions in provider
         PermissionProviderUpdater permissionProviderUpdater = new(entity);
-        permissionProviderUpdater.Update();
+        permissionProviderUpdater.Handle();
 
         // Application ------------------------------
 
         //Create AppService (Application)
         AppServiceCreator appServiceCreator = new(entity);
-        appServiceCreator.Create();
+        appServiceCreator.Handle();
 
         //Create AutoMapper (Application)
         AppMapperUpdater appMapperUpdater = new(entity);
-        appMapperUpdater.Update();
+        appMapperUpdater.Handle();
 
         // Mvc ------------------------------
 
         //Menus
         MvcMenuUpdater mvcMenuUpdater = new(entity);
-        mvcMenuUpdater.Update();
+        mvcMenuUpdater.Handle();
 
         //Create View Models
         MvcViewModelCreator mvcViewModelCreator = new(entity);
-        mvcViewModelCreator.Create();
+        mvcViewModelCreator.Handle();
 
         //Create Index Page 
         MvcIndexPageCreator indexPageCreator = new(entity);
-        indexPageCreator.Create();
+        indexPageCreator.Handle();
 
         //Create EditModal 
         MvcEditModalCreator editModalCreator = new(entity);
-        editModalCreator.Create();
+        editModalCreator.Handle();
 
         //Create CreateModal 
         MvcCreateModalCreator createModalCreator = new(entity);
-        createModalCreator.Create();
+        createModalCreator.Handle();
 
         return true;
     }

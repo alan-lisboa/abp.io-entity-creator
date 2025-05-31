@@ -4,23 +4,20 @@ using System.Text;
 
 namespace EntityCreator.Generators;
 
-public class AppServiceContractCreator(EntityModel entity)
+public class AppServiceContractCreator(EntityModel entity) : BaseGenerator
 {
-    public bool Create()
+    public override bool Handle()
     {
-        string artifactName = $"I{entity.Name}AppService";
-        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Contracts\\{entity.Pluralized}";
-        string filename = $"{folder}\\{artifactName}.cs";
+        artifactName = $"I{entity.Name}AppService";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Application.Contracts\\Contracts\\{entity.Pluralized}";
+        filename = $"{folder}\\{artifactName}.cs";
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+        CreateDirectory(folder);
 
         if (File.Exists(filename))
             return false;
 
-        StringBuilder stringBuilder = new();
-
-        stringBuilder
+        builder
             .AppendLine("using System;")
             .AppendLine("using System.Threading.Tasks;")
             .AppendLine("using Volo.Abp.Application.Dtos;")
@@ -28,7 +25,7 @@ public class AppServiceContractCreator(EntityModel entity)
             .AppendLine($"using {entity.Namespace}.{entity.Pluralized}.Dtos;")
             .AppendLine();
 
-        stringBuilder
+        builder
             .Append("namespace ")
             .Append(entity.Namespace)
             .Append('.')
@@ -36,23 +33,47 @@ public class AppServiceContractCreator(EntityModel entity)
             .AppendLine(";")
             .AppendLine();
 
-        stringBuilder
+        builder
             .Append("public interface ")
             .Append(artifactName)
-            .AppendLine(" :")
-            .AppendLine("\tICrudAppService<")
-            .AppendLine($"\t\t{entity.Name}Dto,")
-            .AppendLine("\t\tGuid,")
-            .AppendLine($"\t\t{entity.Name}GetListInputDto,")
-            .AppendLine($"\t\tCreateUpdate{entity.Name}Dto,")
-            .AppendLine($"\t\tCreateUpdate{entity.Name}Dto>");
+            .AppendLine(" :");
 
-        stringBuilder.AppendLine("{");
+        indentationLevel++;
+        
+        builder
+            .Append(Indentation)
+            .AppendLine("ICrudAppService<");
 
-        stringBuilder.AppendLine("}");
+        indentationLevel++;
+        
+        builder
+            .Append(Indentation)
+            .AppendLine($"{entity.Name}Dto,");
 
-        File.WriteAllText(filename, stringBuilder.ToString());
+        builder
+            .Append(Indentation)
+            .AppendLine("Guid,");
 
-        return true;
+        builder
+            .Append(Indentation)
+            .AppendLine($"{entity.Name}GetListInputDto,");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"CreateUpdate{entity.Name}Dto,");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"CreateUpdate{entity.Name}Dto>");
+
+        indentationLevel = 0;
+
+        builder
+            .AppendLine("{");
+
+        builder
+            .AppendLine("}");
+
+        return WriteToFile();
     }
 }

@@ -1,31 +1,30 @@
-﻿using EntityCreator.Models;
+﻿using EntityCreator.Helpers;
+using EntityCreator.Models;
 using System.Text;
 
 namespace EntityCreator.Generators;
 
-public class AppServiceCreator(EntityModel entity)
+public class AppServiceCreator(EntityModel entity) : BaseGenerator
 {
-    public bool Create()
+    public override bool Handle()
     {
-        string artifactName = $"{entity.Name}AppService";
-        string folder = $"{entity.Location}\\src\\{entity.Namespace}.Application\\Services\\{entity.Pluralized}";
-        string filename = $"{folder}\\{artifactName}.cs";
+        artifactName = $"{entity.Name}AppService";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.Application\\Services\\{entity.Pluralized}";
+        filename = $"{folder}\\{artifactName}.cs";
+        
+        CreateDirectory(folder);
+
+        if (File.Exists(filename))
+            return false;
+
         string permissions = $"{entity.ProjectName}Permissions.{entity.Name}";
         string entityDto = $"{entity.Name}Dto";
         string createUpdateDto = $"CreateUpdate{entity.Name}Dto";
         string getListDto = $"{entity.Name}GetListInputDto";
         string irepository = $"I{entity.Name}Repository";
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
-
-        if (File.Exists(filename))
-            return false;
-
-        StringBuilder stringBuilder = new();
-
         // usings
-        stringBuilder
+        builder
             .AppendLine("using System;")
             .AppendLine("using System.Linq;")
             .AppendLine("using System.Threading.Tasks;")
@@ -37,107 +36,167 @@ public class AppServiceCreator(EntityModel entity)
             .AppendLine($"using {entity.Namespace}.Permissions;")
             .AppendLine();
 
-        stringBuilder
+        builder
             .AppendLine($"namespace {entity.Namespace}.{entity.Pluralized};")
             .AppendLine();
 
         // class
-        stringBuilder
+        builder
             .AppendLine($"[Authorize({permissions}.Default)]");
 
-        stringBuilder
-            .AppendLine($"public class {artifactName} :")
-            .AppendLine("\tCrudAppService<")
-            .AppendLine($"\t\t{entity.Name}, ")
-            .AppendLine($"\t\t{entityDto}, ")
-            .AppendLine("\t\tGuid, ")
-            .AppendLine($"\t\t{getListDto}, ")
-            .AppendLine($"\t\t{createUpdateDto}, ")
-            .AppendLine($"\t\t{createUpdateDto}>,")
-            .AppendLine($"\tI{artifactName}");
+        builder
+            .AppendLine($"public class {artifactName} :");
 
-        stringBuilder.AppendLine("{");
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("CrudAppService<");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"{entity.Name}, ");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"{entityDto}, ");
+
+        builder
+            .Append(Indentation)
+            .AppendLine("Guid, ");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"{getListDto}, ");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"{createUpdateDto}, ");
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"{createUpdateDto}>,");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine($"I{artifactName}");
+
+        builder
+            .AppendLine("{");
 
         // fields
-        stringBuilder
-            .Append("\tprivate readonly ")
+        builder
+            .Append(Indentation)
+            .Append("private readonly ")
             .Append($"{irepository} ")
             .AppendLine("_repository;")
             .AppendLine();
 
         // constructor
-        stringBuilder
-            .Append($"\tpublic {artifactName} ")
+        builder
+            .Append(Indentation)
+            .Append($"public {artifactName} ")
             .Append($"({irepository} repository) : ")
             .AppendLine("base(repository)")
-            .AppendLine("\t{")
-            .AppendLine("\t\t_repository = repository;")
+            .Append(Indentation)
+            .AppendLine("{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("_repository = repository;")
             .AppendLine();
 
         // permissions
-        stringBuilder
-            .Append("\t\tGetPolicyName = ")
+        builder
+            .Append(Indentation)
+            .Append("GetPolicyName = ")
             .AppendLine($"{permissions}.Default;");
             
-        stringBuilder
-            .Append("\t\tGetListPolicyName = ")
+        builder
+            .Append(Indentation)
+            .Append("GetListPolicyName = ")
             .AppendLine($"{permissions}.Default;");
 
-        stringBuilder
-            .Append("\t\tCreatePolicyName = ")
+        builder
+            .Append(Indentation)
+            .Append("CreatePolicyName = ")
             .AppendLine($"{permissions}.Create;");
-        { }
-        stringBuilder
-            .Append("\t\tUpdatePolicyName = ")
+        
+        builder
+            .Append(Indentation)
+            .Append("UpdatePolicyName = ")
             .AppendLine($"{permissions}.Edit;");
             
-        stringBuilder
-            .Append("\t\tDeletePolicyName = ")
+        builder
+            .Append(Indentation)
+            .Append("DeletePolicyName = ")
             .AppendLine($"{permissions}.Delete;");
 
-        stringBuilder.AppendLine("\t}");
+        indentationLevel--;
+
+        builder
+            .AppendLine("}");
 
         // methods
-        stringBuilder
-            .Append("\tprotected override async Task<IQueryable<")
+        builder
+            .Append(Indentation)
+            .Append("protected override async Task<IQueryable<")
             .Append($"{entity.Name}>>" )
             .Append("CreateFilteredQueryAsync(")
-            .AppendLine($"{getListDto} input)")
-            .AppendLine("\t{");
+            .AppendLine($"{getListDto} input)");
 
-        stringBuilder
-            .AppendLine("\t\treturn (await base.CreateFilteredQueryAsync(input))");
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("return (await base.CreateFilteredQueryAsync(input))");
 
         var whereif = false;
 
+        indentationLevel++;
+
         foreach (var property in entity.Properties!)
         {
-            if (property.Type != BaseTypes.String)
+            if (property.Type != BaseTypeHelper.String)
                 continue;
 
             if (!whereif)
                 whereif = true;
             else
-                stringBuilder.AppendLine();
+                builder.AppendLine();
 
-            stringBuilder
-                .Append("\t\t\t.WhereIf(!input.")
+            builder
+                .Append(Indentation)
+                .Append(".WhereIf(!input.")
                 .Append($"{property.Name}")
                 .Append(".IsNullOrWhiteSpace(), x => x.")
                 .Append($"{property.Name}!.Contains(")
                 .Append($"input.{property.Name}!))");
         }
 
-        stringBuilder
-            .AppendLine("\t\t\t;");
+        builder
+            .Append(Indentation)
+            .AppendLine(";");
 
-        stringBuilder
-            .AppendLine("\t}");
+        indentationLevel = 1;
 
-        stringBuilder.AppendLine("}");
+        builder
+            .Append(Indentation)
+            .AppendLine("}");
 
-        File.WriteAllText(filename, stringBuilder.ToString());
+        builder
+            .AppendLine("}");
 
-        return true;
+        return WriteToFile();
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace EntityCreator.Generators;
+﻿namespace EntityCreator.Helpers;
 
-public class BaseTypes
+public class BaseTypeHelper
 {
     public const string AggregateRoot = "AggregateRoot";
     public const string Entity = "Entity";

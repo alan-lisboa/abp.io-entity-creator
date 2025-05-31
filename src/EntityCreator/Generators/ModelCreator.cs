@@ -1,22 +1,20 @@
-﻿using EntityCreator.Models;
+﻿using EntityCreator.Helpers;
+using EntityCreator.Models;
 using Humanizer;
 using System.DirectoryServices.ActiveDirectory;
 using System.Text;
 
 namespace EntityCreator.Generators;
 
-public class ModelCreator(EntityModel entity)
+public class ModelCreator(EntityModel entity) : BaseGenerator
 {
     private readonly string[] reservedNames = ["event", "class", "bool", "string", "public", "private", "protected"];
-    
-    private string? folder;
 
-    public bool Create()
+    public override bool Handle()
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.Domain\\Entities\\{entity.Pluralized}";
 
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+        CreateDirectory(folder);
 
         CreateEntity(entity.Name!, entity.Properties!, "FullAuditedAggregateRoot<Guid>");
 
@@ -34,24 +32,22 @@ public class ModelCreator(EntityModel entity)
 
     private bool CreateEntity(string entityName, List<PropertyModel> properties, string type)
     {
-        string filename = $"{folder}\\{entityName}.cs";
+        filename = $"{folder}\\{entityName}.cs";
 
         if (File.Exists(filename))
             return false;
 
-        StringBuilder stringBuilder = new();
-
         // namespaces
-        stringBuilder.AppendLine("using System;");
-        stringBuilder.AppendLine("using System.Collections.Generic;");
-        stringBuilder.AppendLine("using System.Collections.ObjectModel;");
-        stringBuilder.AppendLine("using Volo.Abp.Domain.Entities;");
-        stringBuilder.AppendLine("using Volo.Abp.Domain.Entities.Auditing;");
-        stringBuilder.AppendLine("using Volo.Abp.Domain.Values;");
+        builder.AppendLine("using System;");
+        builder.AppendLine("using System.Collections.Generic;");
+        builder.AppendLine("using System.Collections.ObjectModel;");
+        builder.AppendLine("using Volo.Abp.Domain.Entities;");
+        builder.AppendLine("using Volo.Abp.Domain.Entities.Auditing;");
+        builder.AppendLine("using Volo.Abp.Domain.Values;");
         
-        stringBuilder.AppendLine();
+        builder.AppendLine();
 
-        stringBuilder
+        builder
             .Append("namespace ")
             .Append(entity.Namespace)
             .Append('.')
@@ -60,37 +56,43 @@ public class ModelCreator(EntityModel entity)
             .AppendLine();
 
         // class
-        stringBuilder
+        builder
             .Append("public class ")
             .Append(entityName)
             .Append(" : ")
             .AppendLine(type);
 
-        stringBuilder.AppendLine("{");
+        builder.AppendLine("{");
+
+        indentationLevel++;
 
         // constructor
-        stringBuilder
-            .Append("\tprotected ")
+        builder
+            .Append(Indentation)
+            .Append("protected ")
             .Append(entityName)
             .AppendLine("()")
-            .AppendLine("\t{")
-            .AppendLine("\t}")
+            .Append(Indentation)
+            .AppendLine("{")
+            .Append(Indentation)
+            .AppendLine("}")
             .AppendLine();
 
-        stringBuilder
-            .Append("\tpublic ")
+        builder
+            .Append(Indentation)
+            .Append("public ")
             .Append(entityName);
 
         bool firstProperty = true;
 
-        if (type != BaseTypes.ValueObject)
+        if (type != BaseTypeHelper.ValueObject)
         {
-            stringBuilder.Append("(Guid id");
+            builder.Append("(Guid id");
             firstProperty = false;
         }
         else
         {
-            stringBuilder.Append('(');
+            builder.Append('(');
         }
         
         foreach (var property in properties)
@@ -104,15 +106,15 @@ public class ModelCreator(EntityModel entity)
             if (reservedNames.Any(x => x == propertyName))
                 propertyName = "@" + propertyName;
 
-            if (property.Type == BaseTypes.Entity || 
-                property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregateRoot)
+            if (property.Type == BaseTypeHelper.Entity || 
+                property.Type == BaseTypeHelper.ValueObject || 
+                property.Type == BaseTypeHelper.AggregateRoot)
                 propertyType = property.Name;
 
             if (!firstProperty)
-                stringBuilder.Append(", ");
+                builder.Append(", ");
 
-            stringBuilder
+            builder
                 .Append(propertyType)
                 .Append(' ')
                 .Append(propertyName);
@@ -120,12 +122,16 @@ public class ModelCreator(EntityModel entity)
             firstProperty = false;
         }
 
-        if (type != BaseTypes.ValueObject)
-            stringBuilder.AppendLine(") : base(id)");
+        if (type != BaseTypeHelper.ValueObject)
+            builder.AppendLine(") : base(id)");
         else
-            stringBuilder.AppendLine(")");
+            builder.AppendLine(")");
 
-        stringBuilder.AppendLine("\t{");
+        builder
+            .Append(Indentation)
+            .AppendLine("{");
+
+        indentationLevel++;
 
         foreach (var property in properties)
         {
@@ -138,16 +144,19 @@ public class ModelCreator(EntityModel entity)
             if (reservedNames.Any(x => x == propertyInput))
                 propertyInput = "@" + propertyInput;
 
-            stringBuilder
-                .Append("\t\t")
+            builder
+                .Append(Indentation)
                 .Append(propertyName)
                 .Append(" = ")
                 .Append(propertyInput)
                 .AppendLine(";");
         }
 
-        stringBuilder
-            .AppendLine("\t}")
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}")
             .AppendLine();
 
         // Properties
@@ -156,9 +165,9 @@ public class ModelCreator(EntityModel entity)
             var propertyName = property.Name;
             var propertyType = property.Type;
 
-            if (property.Type == BaseTypes.Entity || 
-                property.Type == BaseTypes.ValueObject || 
-                property.Type == BaseTypes.AggregateRoot)
+            if (property.Type == BaseTypeHelper.Entity || 
+                property.Type == BaseTypeHelper.ValueObject || 
+                property.Type == BaseTypeHelper.AggregateRoot)
                 propertyType = property.Name;
 
             if (property.IsCollection)
@@ -167,49 +176,54 @@ public class ModelCreator(EntityModel entity)
                 propertyName = propertyName.Pluralize();
             }
 
-            if (!property.IsRequired && (property.Type == BaseTypes.String || property.IsCollection))
+            if (!property.IsRequired && (property.Type == BaseTypeHelper.String || property.IsCollection))
                 propertyType += "?";
 
-            stringBuilder
-                .Append("\tpublic virtual ")
+            builder
+                .Append(Indentation)
+                .Append("public virtual ")
                 .Append(propertyType)
                 .Append(' ')
-                .Append(propertyName);
-            
-            stringBuilder
+                .Append(propertyName)
                 .Append(" { get; set; }")
                 .AppendLine();
         }
 
         // methods
-        if (type == BaseTypes.ValueObject)
+        if (type == BaseTypeHelper.ValueObject)
         {
-            stringBuilder
+            builder
                 .AppendLine()
-                .AppendLine("\tprotected override IEnumerable<object> GetAtomicValues()")
-                .AppendLine("\t{");
+                .Append(Indentation)
+                .AppendLine("protected override IEnumerable<object> GetAtomicValues()")
+                .Append(Indentation)
+                .AppendLine("{");
+
+            indentationLevel++;
 
             foreach (var property in properties)
             {
-                stringBuilder
-                    .Append("\t\tyield return ")
+                builder
+                    .Append(Indentation)
+                    .Append("yield return ")
                     .Append(property.Name);
 
                 if (!property.IsRequired && property.Type == "string")
-                    stringBuilder.Append('!');
+                    builder.Append('!');
                 
-                stringBuilder
+                builder
                     .AppendLine(";");
             }
 
-            stringBuilder
-                .AppendLine("\t}");
+            indentationLevel--;
+
+            builder
+                .Append(Indentation)
+                .AppendLine("}");
         }
 
-        stringBuilder.AppendLine("}");
+        builder.AppendLine("}");
 
-        File.WriteAllText(filename, stringBuilder.ToString());
-
-        return true;
+        return WriteToFile();
     }
 }

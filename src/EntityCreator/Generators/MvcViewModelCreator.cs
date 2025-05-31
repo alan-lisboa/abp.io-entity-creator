@@ -1,23 +1,22 @@
-﻿using EntityCreator.Models;
+﻿using EntityCreator.Helpers;
+using EntityCreator.Models;
 using Humanizer;
 using System.Text;
 
 namespace EntityCreator.Generators
 {
-    public class MvcViewModelCreator(EntityModel entity)
+    public class MvcViewModelCreator(EntityModel entity) : BaseGenerator()
     {
-        private string? folder;
         private string? folderViewModels;
         private string? mapper;
 
-        public bool Create()
+        public override bool Handle()
         {
             folder = $"{entity.Location}\\src\\{entity.Namespace}.Web";
             folderViewModels = $"{folder}\\Pages\\{entity.Pluralized}\\{entity.Name}\\ViewModels";
             mapper = $"{entity.ProjectName}WebAutoMapperProfile";
 
-            if (!Directory.Exists(folderViewModels))
-                Directory.CreateDirectory(folderViewModels);
+            CreateDirectory(folderViewModels);
 
             CreateFilterInputViewModel();
 
@@ -32,20 +31,20 @@ namespace EntityCreator.Generators
 
         private bool CreateFilterInputViewModel()
         {
-            string artifactName = $"{entity.Name}FilterInput";
-            string filename = $"{folderViewModels}\\{artifactName}.cs";
+            artifactName = $"{entity.Name}FilterInput";
+            filename = $"{folderViewModels}\\{artifactName}.cs";
 
             if (File.Exists(filename))
                 return false;
 
-            StringBuilder stringBuilder = new();
+            Initialize();
 
-            stringBuilder
+            builder
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
                 .AppendLine();
 
-            stringBuilder
+            builder
                 .Append("namespace ")
                 .Append(entity.Namespace)
                 .Append(".Web.Pages.")
@@ -56,66 +55,67 @@ namespace EntityCreator.Generators
                 .AppendLine(";")
                 .AppendLine();
 
-            stringBuilder
+            builder
                 .Append("public class ")
                 .Append(artifactName)
                 .AppendLine()
                 .AppendLine("{");
 
+            indentationLevel++;
+
             foreach (var property in entity.Properties!)
             {
-                if (property.IsCollection || 
-                    property.Type == BaseTypes.Entity || 
-                    property.Type == BaseTypes.ValueObject || 
-                    property.Type == BaseTypes.AggregateRoot)
+                if (property.IsCollection || BaseTypeHelper.IsEntityType(property.Type!))
                     continue;
 
-                stringBuilder
-                    .Append("\t[Display(Name = \"")
+                builder
+                    .Append(Indentation)
+                    .Append("[Display(Name = \"")
                     .Append(entity.Name)
                     .Append(property.Name)
                     .Append("\")]")
                     .AppendLine();
 
-                stringBuilder
-                    .Append("\tpublic ")
+                builder
+                    .Append(Indentation)
+                    .Append("public ")
                     .Append(property.Type);
 
-                if (property.Type == BaseTypes.String)
-                    stringBuilder.Append('?');
+                if (property.Type == BaseTypeHelper.String)
+                    builder.Append('?');
 
-                stringBuilder
+                builder
                     .Append(' ')
                     .Append(property.Name)
-                    .Append(" { get; set; }")
+                    .AppendLine(" { get; set; }")
                     .AppendLine();
             }
 
-            stringBuilder.AppendLine("}");
+            builder.AppendLine("}");
 
-            File.WriteAllText(filename, stringBuilder.ToString());
+            indentationLevel--;
 
-            return true;
+            return WriteToFile();
         }
 
         private bool CreateEditViewModel()
         {
-            string artifactName = $"CreateEdit{entity.Name}ViewModel";
-            string filename = $"{folderViewModels}\\{artifactName}.cs";
+            artifactName = $"CreateEdit{entity.Name}ViewModel";
+            filename = $"{folderViewModels}\\{artifactName}.cs";
 
             if (File.Exists(filename))
                 return false;
 
-            StringBuilder stringBuilder = new();
+            Initialize();
 
-            stringBuilder
+            builder
                 .AppendLine("using System;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Form;")
                 .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
                 .AppendLine();
 
-            stringBuilder
+            builder
                 .Append("namespace ")
                 .Append(entity.Namespace)
                 .Append(".Web.Pages.")
@@ -126,48 +126,58 @@ namespace EntityCreator.Generators
                 .AppendLine(";")
                 .AppendLine();
 
-            stringBuilder
+            builder
                 .Append("public class ")
                 .Append(artifactName)
                 .AppendLine()
                 .AppendLine("{");
 
+            indentationLevel++;
+
             foreach (var property in entity.Properties!)
             {
                 string propertyType = property.Type!;
 
-                if (BaseTypes.IsAggregatedChild(property.Type!))
+                if (BaseTypeHelper.IsAggregatedChild(property.Type!))
                     propertyType = $"{entity.Name}{property.Name!}ViewModel";
 
                 if (property.IsCollection)
                     propertyType = $"List<{propertyType}>";
 
-                if (!property.IsRequired && (BaseTypes.IsNullable(property.Type!) || property.IsCollection))
+                if (!property.IsRequired && (BaseTypeHelper.IsNullable(property.Type!) || property.IsCollection))
                     propertyType += "?";
 
                 if (property.IsRequired)
-                    stringBuilder.AppendLine("\t[Required]");
+                {
+                    builder
+                        .Append(Indentation)
+                        .AppendLine("[Required]");
+                }
+                    
                 
                 if (property.Size > 0)
                 {
-                    stringBuilder
-                        .Append("\t[MaxLength(")
+                    builder
+                        .Append(Indentation)
+                        .Append("[MaxLength(")
                         .Append(property.Size)
                         .AppendLine(")]");
                 }
 
-                stringBuilder
-                    .Append("\t[Display(Name = \"")
+                builder
+                    .Append(Indentation)
+                    .Append("[Display(Name = \"")
                     .Append(entity.Name)
                     .Append(property.Name)
                     .Append("\")]")
                     .AppendLine();
                 
-                stringBuilder
-                    .Append("\tpublic ")
+                builder
+                    .Append(Indentation)
+                    .Append("public ")
                     .Append(propertyType);
 
-                stringBuilder
+                builder
                     .Append(' ')
                     .Append(property.Name)
                     .Append(" { get; set; }")
@@ -175,35 +185,36 @@ namespace EntityCreator.Generators
                     .AppendLine();
             }
 
-            stringBuilder.AppendLine("}");
+            indentationLevel--;
 
-            File.WriteAllText(filename, stringBuilder.ToString());
-            return true;
+            builder.AppendLine("}");
+
+            return WriteToFile();
         }
 
         private bool CreateAggregatedViewModel()
         {
             foreach (var entityProperty in entity.Properties!)
             {
-                if (!BaseTypes.IsAggregatedChild(entityProperty.Type!))
+                if (!BaseTypeHelper.IsAggregatedChild(entityProperty.Type!))
                     continue;
 
-                string artifactName = $"{entity.Name}{entityProperty.Name}ViewModel";
-                string filename = $"{folderViewModels}\\{artifactName}.cs";
+                artifactName = $"{entity.Name}{entityProperty.Name}ViewModel";
+                filename = $"{folderViewModels}\\{artifactName}.cs";
 
                 if (File.Exists(filename))
                     return false;
 
-                StringBuilder stringBuilder = new();
+                Initialize();
 
-                stringBuilder
+                builder
                     .AppendLine("using System;")
                     .AppendLine("using System.ComponentModel.DataAnnotations;")
                     .AppendLine("using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Form;")
                     .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
                     .AppendLine();
 
-                stringBuilder
+                builder
                     .Append("namespace ")
                     .Append(entity.Namespace)
                     .Append(".Web.Pages.")
@@ -214,49 +225,54 @@ namespace EntityCreator.Generators
                     .AppendLine(";")
                     .AppendLine();
 
-                stringBuilder
+                builder
                     .Append("public class ")
                     .Append(artifactName)
                     .AppendLine()
                     .AppendLine("{");
 
+                indentationLevel++;
+
                 foreach (var property in entityProperty.Properties!)
                 {
                     string propertyType = property.Type!;
 
-                    if (BaseTypes.IsEntityType(property.Type!))
+                    if (BaseTypeHelper.IsEntityType(property.Type!))
                         continue;
 
-                    if (!property.IsRequired && property.Type! == BaseTypes.String)
+                    if (!property.IsRequired && property.Type! == BaseTypeHelper.String)
                         propertyType += "?";
 
-                    stringBuilder
-                        .Append("\tpublic ")
+                    builder
+                        .Append(Indentation)
+                        .Append("public ")
                         .Append(propertyType)
                         .Append(' ').Append(property.Name)
                         .Append(" { get; set; }")
                         .AppendLine();
                 }
 
-                stringBuilder.AppendLine("}");
+                indentationLevel--;
 
-                File.WriteAllText(filename, stringBuilder.ToString());
+                builder.AppendLine("}");
+
+                WriteToFile();
             }
-
+            
             return true;
         }
 
         private bool UpdateMappings()
         {
-            string filename = $"{folder}\\{mapper}.cs";
+            filename = $"{folder}\\{mapper}.cs";
 
             if (!File.Exists(filename))
                 return false;
 
+            Initialize();
+
             bool added = false;
             bool isUsing = true;
-
-            StringBuilder stringBuilder = new();
 
             using StreamReader reader = new(filename);
             string line = reader.ReadLine()!;
@@ -266,7 +282,7 @@ namespace EntityCreator.Generators
                 {
                     isUsing = false;
 
-                    stringBuilder
+                    builder
                         .Append("using ")
                         .Append(entity.Namespace)
                         .Append(".Web.Pages.")
@@ -276,7 +292,7 @@ namespace EntityCreator.Generators
                         .Append(".ViewModels;")
                         .AppendLine();
 
-                    stringBuilder
+                    builder
                         .Append("using ")
                         .Append(entity.Namespace)
                         .Append('.')
@@ -289,45 +305,52 @@ namespace EntityCreator.Generators
                 {
                     added = true;
 
-                    stringBuilder.AppendLine();
+                    indentationLevel = 2;
 
-                    stringBuilder
-                        .Append("\t\tCreateMap")
+                    builder
+                        .AppendLine();
+
+                    builder
+                        .Append(Indentation)
+                        .Append("CreateMap")
                         .Append($"<{entity.Name}Dto, CreateEdit{entity.Name}ViewModel>")
                         .AppendLine("();");
 
-                    stringBuilder
-                        .Append("\t\tCreateMap")
+                    builder
+                        .Append(Indentation)
+                        .Append("CreateMap")
                         .Append($"<CreateEdit{entity.Name}ViewModel, CreateUpdate{entity.Name}Dto>")
                         .AppendLine("();");
 
                     foreach (var property in entity.Properties!)
                     {
-                        if (BaseTypes.IsAggregatedChild(property.Type!))
+                        if (BaseTypeHelper.IsAggregatedChild(property.Type!))
                         {
-                            stringBuilder
-                                .Append("\t\tCreateMap")
+                            builder
+                                .Append(Indentation)
+                                .Append("CreateMap")
                                 .Append($"<{entity.Name}{property.Name}Dto, {entity.Name}{property.Name}ViewModel>")
                                 .AppendLine("();");
 
-                            stringBuilder
-                                .Append("\t\tCreateMap")
+                            builder
+                                .Append(Indentation)
+                                .Append("CreateMap")
                                 .Append($"<{entity.Name}{property.Name}ViewModel, {entity.Name}{property.Name}Dto>")
                                 .AppendLine("();");
                         }
                     }
+
+                    indentationLevel = 0;
                 }
 
-                stringBuilder.AppendLine(line);
+                builder.AppendLine(line);
 
                 line = reader.ReadLine()!;
             }
 
             reader.Dispose();
 
-            File.WriteAllText(filename, stringBuilder.ToString());
-
-            return true;
+            return WriteToFile();
         }
     }
 }

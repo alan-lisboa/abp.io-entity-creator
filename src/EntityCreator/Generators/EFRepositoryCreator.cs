@@ -8,24 +8,22 @@ using System.Threading.Tasks;
 
 namespace EntityCreator.Generators;
 
-public class EFRepositoryCreator(EntityModel entity)
+public class EFRepositoryCreator(EntityModel entity) : BaseGenerator
 {
-    public bool Create()
+    public override bool Handle()
     {
-        string dbContext = $"{entity.ProjectName}DbContext";
-        string artifactName = $"{entity.Name}Repository";
-        string folder = $"{entity.Location}\\src\\{entity.Namespace}.EntityFrameworkCore\\Entities\\{entity.Pluralized}";
-        string filename = $"{folder}\\{artifactName}.cs";
-
-        if (!Directory.Exists(folder))
-            Directory.CreateDirectory(folder);
+        artifactName = $"{entity.Name}Repository";
+        folder = $"{entity.Location}\\src\\{entity.Namespace}.EntityFrameworkCore\\Entities\\{entity.Pluralized}";
+        filename = $"{folder}\\{artifactName}.cs";
+        
+        CreateDirectory(folder);
 
         if (File.Exists(filename))
             return false;
-        
-        StringBuilder stringBuilder = new();
-        
-        stringBuilder
+
+        string dbContext = $"{entity.ProjectName}DbContext";
+
+        builder
             .AppendLine("using System;")
             .AppendLine("using System.Linq;")
             .AppendLine("using System.Threading.Tasks;")
@@ -37,7 +35,7 @@ public class EFRepositoryCreator(EntityModel entity)
             .AppendLine($"using {entity.Namespace}.{entity.Pluralized};")
             .AppendLine();
 
-        stringBuilder
+        builder
             .Append("namespace ")
             .Append(entity.Namespace)
             .Append('.')
@@ -45,7 +43,7 @@ public class EFRepositoryCreator(EntityModel entity)
             .AppendLine(";")
             .AppendLine();
 
-        stringBuilder
+        builder
             .Append("public class ")
             .Append(entity.Name)
             .Append("Repository : EfCoreRepository<")
@@ -58,25 +56,28 @@ public class EFRepositoryCreator(EntityModel entity)
             .Append(entity.Name)
             .AppendLine("Repository");
 
-        stringBuilder
+        builder
             .AppendLine("{");
 
-        stringBuilder
-            .Append("\tpublic ")
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .Append("public ")
             .Append(entity.Name)
             .Append("Repository(")
             .Append("IDbContextProvider<")
             .Append(dbContext)
             .AppendLine("> dbContextProvider) : base(dbContextProvider)")
-            .AppendLine("\t{")
-            .AppendLine("\t}")
+            .Append(Indentation)
+            .AppendLine("{")
+            .Append(Indentation)
+            .AppendLine("}")
             .AppendLine();
 
-        stringBuilder
+        builder
             .AppendLine("}");
 
-        File.WriteAllText(filename, stringBuilder.ToString());
-
-        return true;
+        return WriteToFile();
     }
 }
