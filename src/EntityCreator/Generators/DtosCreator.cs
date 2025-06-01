@@ -217,8 +217,7 @@ public class DtosCreator(EntityModel entity) : BaseGenerator
 
         builder
             .Append(Indentation)
-            .Append("public string? Search { get; set; }")
-            .AppendLine();
+            .AppendLine("public string? Search { get; set; }");
 
         foreach (var property in entity.Properties!)
         {
@@ -234,9 +233,9 @@ public class DtosCreator(EntityModel entity) : BaseGenerator
                 .Append(Indentation)
                 .Append("public ")
                 .Append(propertyType)
-                .Append(' ').Append(property.Name)
-                .Append(" { get; set; }")
-                .AppendLine();
+                .Append(' ')
+                .Append(property.Name)
+                .AppendLine(" { get; set; }");
         }
 
         indentationLevel--;

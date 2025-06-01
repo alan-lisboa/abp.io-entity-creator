@@ -208,7 +208,6 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
             .AppendLine("<div class=\"d-flex\">");
 
         // Search
-
         indentationLevel++;
 
         builder
@@ -251,7 +250,6 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
             .AppendLine("</div>");
 
         // filter
-
         builder
             .Append(Indentation)
             .AppendLine("<div class=\"col-auto ms-4\">");

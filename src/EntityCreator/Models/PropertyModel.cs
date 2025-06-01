@@ -6,8 +6,9 @@ public class PropertyModel
     public string? Name { get; set; }
     public string? Type { get; set; }
     public int Size { get; set; }
+    public string? Section { get; set; }
     public bool IsRequired { get; set; }
     public bool IsCollection { get; set; }
-    public bool IsDefault { get; set; }
+    public int SearchIndex { get; set; }
     public List<PropertyModel>? Properties { get; set; }
 }

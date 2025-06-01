@@ -1,9 +1,4 @@
 ﻿using Humanizer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EntityCreator.Models;
 
@@ -57,6 +52,9 @@ public class EntityModel
         }
     }
 
+    public bool RunMigrations { get; set; }
+
     public List<PropertyModel>? Properties { get; set; }
+
     public List<LocalizationModel>? Localizations { get; set; }
 }

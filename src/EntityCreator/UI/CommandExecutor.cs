@@ -54,15 +54,20 @@ namespace EntityCreator.Forms
             return new WebView2Message("LoadSolutionData", paylod);
         }
 
-        private WebView2Message? ProcessCreateEntityMessage(object? payload)
+        private WebView2Message? ProcessCreateEntityMessage(object payload)
         {
             try
             {
                 var entityModel = JsonSerializer.Deserialize<EntityModel>(payload.ToString());
                
                 EntityGenerator generator = new();
-                generator.Generate(entityModel!);
-
+                bool result = EntityGenerator.Generate(entityModel!);
+                if (!result)
+                {
+                    return new WebView2Message("EntityCreateFailed", 
+                        JsonSerializer.Serialize(new { Message = "Entity creation failed." }));
+                }
+                
                 return new WebView2Message("EntityCreatedSuccessfuly", null);
             }
             catch (Exception ex)
@@ -71,6 +76,5 @@ namespace EntityCreator.Forms
                     JsonSerializer.Serialize(new { ex.Message }));
             }
         }
-
     }
 }

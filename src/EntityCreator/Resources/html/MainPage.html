@@ -24,7 +24,9 @@
                     <div class="toast-body">
                         Alert.
                     </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    <button type="button" 
+                            class="btn-close btn-close-white me-2 m-auto" 
+                            data-bs-dismiss="toast"
                             aria-label="Close"></button>
                 </div>
             </div>
@@ -101,39 +103,241 @@
         </div>
     </div>
 
-    <!-- Modal Localizations -->
-    <div class="modal fade" id="modalLocalization" tabindex="-1" aria-labelledby="localizationModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="localizationModalTitle">Localization</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body mx-4 mb-4">
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <label for="localizationLanguage" class="control-label">Language</label>
-                            <select class="form-select" aria-label="string" id="localizationLanguage">
-                                <option value="ar">ar</option>
-                                <option value="de-DE">de-DE</option>
-                                <option value="en" selected>en</option>
-                                <option value="es">es</option>
-                                <option value="fi">fi</option>
-                                <option value="fr">fr</option>
-                                <option value="hi">hi</option>
-                                <option value="hr">hr</option>
-                                <option value="hu">hu</option>
-                                <option value="it">it</option>
-                                <option value="pt-BR">pt-BR</option>
-                                <option value="ru">ru</option>
-                                <option value="sk">sk</option>
-                                <option value="sl">sl</option>
-                                <option value="sv">sv</option>
-                                <option value="tr">tr</option>
-                                <option value="zh-Hans">zh-Hans</option>
-                            </select>
+    <!-- Main Page -->
+    <img src="../images/logo-abp-dark.svg" class="img-fluid mb-3" alt="abp.io" />
+
+    <!-- Tabs -->
+    <ul class="nav nav-underline">
+        <li class="nav-item">
+            <a data-toggle="underline" 
+               class="nav-link active" 
+               data-bs-toggle="tab" 
+               data-bs-target="#home-pane" 
+               id="tab-home">Home</a>
+        </li>
+        <li class="nav-item">
+            <a data-toggle="underline" 
+               class="nav-link" 
+               data-bs-toggle="tab" 
+               data-bs-target="#entity-pane"
+               id="tab-entity">Entity Properties</a>
+        </li>
+        <li class="nav-item">
+            <a data-toggle="underline" 
+               class="nav-link" 
+               data-bs-toggle="tab" 
+               data-bs-target="#localizations-pane"
+               id="tab-localizations">Localizations</a>
+        </li>
+    </ul>
+
+    <div id="mainPage" class="form-horizontal m-3 mt-5 tab-content">
+
+        <!-- Tab Home -->
+        <div id="home-pane" class="tab-pane fade show active">
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group">
+                        <label class="control-label">Solution Location</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="SolutionLocation" id="solutionLocation"
+                                   readonly placeholder="Location for .sln file"
+                                   aria-describedby="openSolutionLocation" />
+                            <button class="btn btn-outline-info" type="button" id="openSolutionLocation"
+                                    onclick="openSolutionFolder()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
+                                    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label for="entityName" class="col-3 control-label">Entity Name</label>
+                        <input type="text" class="form-control" name="Entity Name" id="entityName"
+                               aria-describedby="entityHelpBlock" />
+                        <div id="entityHelpBlock" class="form-text">
+                            Don't use pluralized names. For example, use "Person" instead of "People".
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label for="pluralizedName" class="col-3 control-label">Pluralized Name</label>
+                        <input type="text" class="form-control" name="Entity Name" id="pluralizedName" />
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="switchMigrations" checked>
+                    <label class="form-check-label" for="switchMigrations">Run 'dotnet migrations' after creation</label>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-primary ms-3" 
+                            name="create" 
+                            value="Create"
+                            onclick="createEntity()">
+                        Create
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Entity Properties -->
+        <div id="entity-pane" class="tab-pane fade">
+            <div class="row">
+                <div class="col-6">
+                    <label for="propertyName" class="control-label">Name</label>
+                    <input type="text" class="form-control" aria-label="Name" id="propertyName"
+                           aria-describedby="propertyNameHelpBlock">
+                    <div id="propertyNameHelpBlock" class="form-text">
+                        Don't need to add property for Id. This is automatically added.
+                    </div>
+                </div>
+                <div class="col-4">
+                    <label for="propertyType" class="control-label">Type</label>
+                    <select class="form-select" aria-label="string" id="propertyType">
+                        <option selected>string</option>
+                        <option value="int">int</option>
+                        <option value="long">long</option>
+                        <option value="Guid">Guid</option>
+                        <option value="decimal">decimal</option>
+                        <option value="float">float</option>
+                        <option value="double">double</option>
+                        <option value="DateTime">DateTime</option>
+                        <option value="TimeSpan">TimeSpan</option>
+                        <option value="Entity">Entity</option>
+                        <option value="ValueObject">ValueObject</option>
+                        <option value="AggregateRoot">AggregateRoot</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label for="propertySize" class="control-label">Size</label>
+                    <input type="number" class="form-control" placeholder="Size" aria-label="Size" value="100"
+                           aria-describedby="sizeHelpBlock" id="propertySize">
+                    <div id="sizeHelpBlock" class="form-text">
+                        Only for string type.
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-6">
+                    <label for="propertySection" class="control-label">Section</label>
+                    <input type="text" class="form-control" aria-label="Section" value=""
+                           aria-describedby="sectionHelpBlock" id="propertySection">
+                    <div id="sectionHelpBlock" class="form-text">
+                        Use sections for tabbed form
+                    </div>
+                </div>
+                <div class="col-6">
+                    <label></label>
+                    <div class="d-flex">
+                        <div class="col-auto">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="switchPropertyIsRequired">
+                                <label class="form-check-label" for="switchPropertyIsRequired">Is Required</label>
+                            </div>
+                        </div>
+                        <div class="col ms-5">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="switchPropertyIsCollection">
+                                <label class="form-check-label" for="switchPropertyIsCollection">Is Collection</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="float-end">
+                        <button class="btn btn-outline-secondary" 
+                                name="defineproperty" 
+                                id="defineProperty" 
+                                disabled>
+                            Define property
+                        </button>
+                        <button class="btn btn-outline-primary ms-3" 
+                                name="addproperty" 
+                                id="addproperty">
+                            Add Property
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card bg-light mt-4">
+                <div class="card-body">
+                    <table class="table table-hover table-light mt-4" id="tableProperties">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Size</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            <tr>
+                                <td colspan="5" class="text-center">No property defined.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Localizations -->
+        <div id="localizations-pane" class="tab-pane fade">
+            <div class="row">
+                <div class="col-12">
+                    <label for="localizationLanguage" class="control-label">Language</label>
+                    <select class="form-select" aria-label="string" id="localizationLanguage">
+                        <option value="" selected></option>
+                        <option value="ar">ar</option>
+                        <option value="de-DE">de-DE</option>
+                        <option value="en">en</option>
+                        <option value="es">es</option>
+                        <option value="fi">fi</option>
+                        <option value="fr">fr</option>
+                        <option value="hi">hi</option>
+                        <option value="hr">hr</option>
+                        <option value="hu">hu</option>
+                        <option value="it">it</option>
+                        <option value="pt-BR">pt-BR</option>
+                        <option value="ru">ru</option>
+                        <option value="sk">sk</option>
+                        <option value="sl">sl</option>
+                        <option value="sv">sv</option>
+                        <option value="tr">tr</option>
+                        <option value="zh-Hans">zh-Hans</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <ul class="nav nav-underline mt-3">
+                <li class="nav-item">
+                    <a data-toggle="underline"
+                       class="nav-link active"
+                       data-bs-toggle="tab"
+                       data-bs-target="#locale-pane-default">Default</a>
+                </li>
+                <li class="nav-item">
+                    <a data-toggle="underline"
+                       class="nav-link"
+                       data-bs-toggle="tab"
+                       data-bs-target="#locale-pane-properties">Properties</a>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-4">
+                <div id="locale-pane-default" class="tab-pane fade show active">
                     <div class="row mt-3">
                         <div class="col-6">
                             <label for="localizationEntityName" class="control-label">Entity</label>
@@ -172,240 +376,63 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card bg-light mt-3">
-                        <div class="card-body">
-                            <div class="row mt-3">
-                                <div class="col-5">
-                                    <label for="localizationPropertyName" class="control-label">Property</label>
-                                    <input type="text" class="form-control" aria-label="Entity" id="localizationPropertyName">
-                                </div>
-                                <div class="col-5">
-                                    <div class="form-group">
-                                        <label for="localizationPropertyTranslation" control-label">Translation</label>
-                                        <input type="text" class="form-control" name="Pluralized" id="localizationPropertyTranslation" />
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="form-group">
-                                        <label></label>
-                                        <div class="d-flex justify-content-end align-items-end">
-                                            <button class="btn btn-outline-primary ms-3" name="addLocalizationProperty"
-                                                    id="addLocalizationProperty">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                                                    <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2" />
-                                                </svg>
-                                                Add
-                                            </button>
-                                        </div>
-                                    </div>
+                </div>
+
+                <div id="locale-pane-properties" class="tab-pane fade">
+
+                    <div class="row mt-3">
+                        <div class="col-5">
+                            <label for="localizationPropertyName" class="control-label">Property</label>
+                            <input type="text" class="form-control" aria-label="Entity" id="localizationPropertyName">
+                        </div>
+                        <div class="col-5">
+                            <div class="form-group">
+                                <label for="localizationPropertyTranslation" control-label">Translation</label>
+                                <input type="text" class="form-control" name="Pluralized" id="localizationPropertyTranslation" />
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-group">
+                                <label></label>
+                                <div class="d-flex justify-content-end align-items-end">
+                                    <button class="btn btn-outline-primary ms-3" name="addLocalizationProperty"
+                                            id="addLocalizationProperty">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2" />
+                                        </svg>
+                                        Add
+                                    </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <table class="table table-hover mt-4 table-light" id="localizationTableProperties">
+                    <div class="card bg-light mt-3">
+                        <div class="card-body">
+                            <table class="table table-hover table-light" id="localizationTableProperties">
                                 <thead>
                                     <tr>
                                         <th scope="col">Property</th>
                                         <th scope="col">Translation</th>
+                                        <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="table-group-divider">
                                     <tr>
-                                        <td colspan="2" class="text-center">No property defined.</td>
+                                        <td colspan="3" class="text-center">No property defined.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" onclick="removeLocalization()">Remove</button>
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="saveLocalization()">Save changes</button>
-                </div>
+            </div>
+
+            <div class="d-flex mt-3 justify-content-end">
+                <button type="button" class="btn btn-danger" onclick="removeLocalization()">Remove</button>
+                <button type="button" class="btn btn-primary ms-3" onclick="saveLocalization()">Save changes</button>
             </div>
         </div>
-    </div>
-
-    <!-- Main Page -->
-
-    <img src="../images/logo-abp-dark.svg" class="img-fluid mb-3" alt="abp.io" />
-
-    <ul class="nav nav-underline">
-        <li class="nav-item">
-            <a data-toggle="underline" class="nav-link active" data-bs-toggle="tab" data-bs-target="#home-pane">Home</a>
-        </li>
-        <li class="nav-item">
-            <a data-toggle="underline" class="nav-link" data-bs-toggle="tab" data-bs-target="#entity-pane">Entity Properties</a>
-        </li>
-    </ul>
-
-    <div id="mainPage" class="form-horizontal m-3 mt-5 tab-content">
-
-        <div id="home-pane" class="tab-pane fade show active">
-            <div class="row">
-                <div class="col-12">
-                    <div class="form-group">
-                        <label class="control-label">Solution Location</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="SolutionLocation" id="solutionLocation"
-                                   readonly placeholder="Location for .sln file"
-                                   aria-describedby="openSolutionLocation" />
-                            <button class="btn btn-outline-info" type="button" id="openSolutionLocation"
-                                    onclick="openSolutionFolder()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
-                                    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-2">
-                <div class="col-6">
-                    <div class="form-group">
-                        <label for="entityName" class="col-3 control-label">Entity Name</label>
-                        <input type="text" class="form-control" name="Entity Name" id="entityName"
-                               aria-describedby="entityHelpBlock" />
-                        <div id="entityHelpBlock" class="form-text">
-                            Don't use pluralized names. For example, use "Person" instead of "People".
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="form-group">
-                        <label for="pluralizedName" class="col-3 control-label">Pluralized Name</label>
-                        <input type="text" class="form-control" name="Entity Name" id="pluralizedName" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-4">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="switchMigrations" checked>
-                    <label class="form-check-label" for="switchMigrations">Run 'dotnet migrations' after creation</label>
-                </div>
-            </div>
-            <div class="row mt-5">
-                <div class="d-flex justify-content-end">
-                    <button class="btn btn-secondary" name="Localizations" value="Localizations" id="Localizations"
-                            onclick="showLocalizationModal()">
-                        Localizations
-                    </button>
-                    <button class="btn btn-primary ms-3" name="create" value="Create"
-                            onclick="createEntity()">
-                        Create
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="entity-pane" class="tab-pane fade">
-
-            <div class="row">
-                <div class="col-6">
-                    <label for="propertyName" class="control-label">Name</label>
-                    <input type="text" class="form-control" aria-label="Name" id="propertyName"
-                           aria-describedby="propertyNameHelpBlock">
-                    <div id="propertyNameHelpBlock" class="form-text">
-                        Don't need to add property for Id. This is automatically added.
-                    </div>
-                </div>
-                <div class="col-4">
-                    <label for="propertyType" class="control-label">Type</label>
-                    <select class="form-select" aria-label="string" id="propertyType">
-                        <option selected>string</option>
-                        <option value="int">int</option>
-                        <option value="long">long</option>
-                        <option value="Guid">Guid</option>
-                        <option value="decimal">decimal</option>
-                        <option value="float">float</option>
-                        <option value="double">double</option>
-                        <option value="DateTime">DateTime</option>
-                        <option value="TimeSpan">TimeSpan</option>
-                        <option value="Entity">Entity</option>
-                        <option value="ValueObject">ValueObject</option>
-                        <option value="AggregateRoot">AggregateRoot</option>
-                    </select>
-                </div>
-                <div class="col-2">
-                    <label for="propertySize" class="control-label">Size</label>
-                    <input type="number" class="form-control" placeholder="Size" aria-label="Size" value="100"
-                           aria-describedby="sizeHelpBlock" id="propertySize">
-                    <div id="sizeHelpBlock" class="form-text">
-                        Only for string type.
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-3">
-                <div class="col-3">
-                    <!--<label for="propertyIsRequired" class="control-label">Is Required</label>
-        <select class="form-select" aria-label="isRequired" id="propertyIsRequired">
-            <option value=false selected>No</option>
-            <option value=true>Yes</option>
-        </select>-->
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="switchPropertyIsRequired">
-                        <label class="form-check-label" for="switchPropertyIsRequired">Is Required</label>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <!--<label for="propertyIsCollection" class="control-label">Is Collection</label>
-        <select class="form-select" aria-label="isCollection" id="propertyIsCollection">
-            <option value=false selected>No</option>
-            <option value=true>Yes</option>
-        </select>-->
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="switchPropertyIsCollection">
-                        <label class="form-check-label" for="switchPropertyIsCollection">Is Collection</label>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="switchPropertyIsDefault">
-                        <label class="form-check-label" for="switchPropertyIsDefault">Is Default</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-12 mt-3">
-                    <div class="float-end">
-                        <button class="btn btn-outline-secondary" name="defineproperty" id="defineProperty" disabled>
-                            Define
-                            property
-                        </button>
-                        <button class="btn btn-outline-primary ms-3" name="addproperty" id="addproperty">
-                            Add
-                            Property
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="card bg-light mt-4">
-                <div class="card-body p-4">
-                    <table class="table table-hover table-light mt-4" id="tableProperties">
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">Size</th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-group-divider">
-                            <tr>
-                                <td colspan="5" class="text-center">No property defined.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-
     </div>
 
     <script src="../libs/jquery/jquery-2.1.3.min.js"></script>
@@ -486,8 +513,9 @@
             var propertyName = $("#propertyName").val();
             var propertyType = $("#propertyType").val();
             var propertySize = $("#propertySize").val();
-            var propertyIsRequired = $("#propertyIsRequired").val();
-            var propertyIsCollection = $("#propertyIsCollection").val();
+            var propertySection = $("#propertySection").val();
+            var propertyIsRequired = $("#switchPropertyIsRequired").prop('checked');
+            var propertyIsCollection = $("#switchPropertyIsCollection").prop('checked');
 
             if (!validatePropertyName("#propertyName"))
                 return;
@@ -499,15 +527,32 @@
                 $("#tableProperties tbody").empty();
             }
 
-            var index = Math.max(...entityModel.Properties.map(x => x.Index), 0) + 1;
+            var index = Math.max(...entityModel.Properties.map(x =>
+                x.Index), 0);
+
+            index++;
+
+            var searchIndex = Math.max(...entityModel.Properties.map(x => {
+                if (x.Type === 'string')
+                    return x.Index;
+                else
+                    return 0;
+            }), 0);
+
+            if (propertyType === 'string')
+                searchIndex++;
+            else
+                searchIndex = 0;
 
             var property = {
                 Index: index,
                 Name: propertyName,
                 Type: propertyType,
                 Size: Number(propertySize),
-                IsRequired: propertyIsRequired == "true" ? true : false,
-                IsCollection: propertyIsCollection == "true" ? true : false,
+                Section: propertySection,
+                IsRequired: propertyIsRequired,
+                IsCollection: propertyIsCollection,
+                SearchIndex: searchIndex,
                 Properties: []
             };
 
@@ -526,8 +571,9 @@
             $("#propertyName").val("");
             $("#propertyType").val("string");
             $("#propertySize").val("100");
-            $("#propertyIsRequired").val("false");
-            $("#propertyIsCollection").val("false");
+            $("#propertySection").val("");
+            $("#switchPropertyIsRequired").prop('checked', false);
+            $("#switchPropertyIsCollection").prop('checked', false);
 
             $("#propertyName").focus();
         }
@@ -540,8 +586,6 @@
             });
 
             $(e).closest("tr").remove();
-
-            console.log(entityModel);
         }
 
         function changePropertyType() {
@@ -563,21 +607,36 @@
             var propertyName = $("#propertyName").val();
             var propertyType = $("#propertyType").val();
             var propertySize = $("#propertySize").val();
-            var propertyIsRequired = $("#propertyIsRequired").val();
-            var propertyIsCollection = $("#propertyIsCollection").val();
+            var propertySection = $("#propertySection").val();
+            var propertyIsRequired = $("#propertyIsRequired").prop('checked');
+            var propertyIsCollection = $("#propertyIsCollection").prop('checked');
 
             if (propertyType != "string")
                 propertySize = "0";
 
             var index = Math.max(...entityModel.Properties.map(x => x.Index), 0) + 1;
 
+            var searchIndex = Math.max(...entityModel.Properties.map(x => {
+                if (x.Type === 'string')
+                    return x.Index;
+                else
+                    return 0;
+            }), 0);
+
+            if (propertyType === 'string')
+                searchIndex++;
+            else
+                searchIndex = 0;
+
             var property = {
                 Index: index,
                 Name: propertyName,
                 Type: propertyType,
                 Size: Number(propertySize),
-                IsRequired: propertyIsRequired == "true" ? true : false,
-                IsCollection: propertyIsCollection == "true" ? true : false,
+                Section: propertySection,
+                IsRequired: propertyIsRequired,
+                IsCollection: propertyIsCollection,
+                SearchIndex: searchIndex,
                 Properties: entityProperties
             };
 
@@ -596,10 +655,9 @@
             $("#propertyName").val("");
             $("#propertyType").val("string");
             $("#propertySize").val("100");
-            $("#propertyIsRequired").val("No");
-            $("#propertyIsCollection").val("No");
-
-            console.log(entityModel);
+            $("#propertySection").val("");
+            $("#switchPropertyIsRequired").prop('checked', false);
+            $("#switchPropertyIsCollection").prop('checked', false);
 
             $("#modalEntity").modal("hide");
         }
@@ -677,6 +735,12 @@
             $("#localizationPropertyName").removeClass("is-invalid");
             $("#localizationPropertyTranslation").removeClass("is-invalid");
 
+            var localizationLanguage = $("#localizationLanguage").val();
+            if (localizationLanguage === '') {
+                showAlert("Invalid Language");
+                return;
+            }
+
             var propertyName = $("#localizationPropertyName").val();
             var propertyTranslation = $("#localizationPropertyTranslation").val();
 
@@ -709,9 +773,10 @@
 
             for (let i = 0; i < localizationProperties.length; i++) {
                 var row = "<tr>" +
-                    "<td>" + localizationProperties[i].Property +
-                    "</td><td>" + localizationProperties[i].Translation +
-                    "</td></tr>";
+                    "<td>" + localizationProperties[i].Property + "</td>" +
+                    "<td>" + localizationProperties[i].Translation + "</td>" +
+                    "<td><button class='btn btn-sm btn-outline-danger' onclick='removeLocalizationProperty(this)'>Remove</button></td>" +
+                    "</tr>";
 
                 $("#localizationTableProperties tbody").append(row);
             }
@@ -725,8 +790,19 @@
             $("#localizationDelete").val("");
             $("#localizationDeletion").val("");
             $("#localizationTableProperties tbody").empty();
-            $("#localizationTableProperties tbody").append("<tr><td colspan='2' class='text-center'>No property defined.</td></tr>");
+            $("#localizationTableProperties tbody").append("<tr><td colspan='3' class='text-center'>No property defined.</td></tr>");
             localizationProperties = [];
+        }
+
+        function removeLocalizationProperty(e) {
+            var element = $(e).closest("tr").find("td")[0];
+            var property = $(element).text();
+
+            localizationProperties = localizationProperties.filter(function (item) {
+                return item.Property != property;
+            });
+
+            $(e).closest("tr").remove();
         }
 
         function saveLocalization() {
@@ -737,6 +813,11 @@
             var localizationEdit = $("#localizationEdit").val();
             var localizationDelete = $("#localizationDelete").val();
             var localizationDeletion = $("#localizationDeletion").val();
+
+            if (localizationLanguage === '') {
+                showAlert("Invalid Language");
+                return;
+            }
 
             var localization = entityModel.Localizations.find(l => l.Language === localizationLanguage);
             if (localization) {
@@ -755,10 +836,9 @@
             });
 
             clearLocalizationProperties();
+            $("#localizationLanguage").val("");
 
-            $("#Localizations").text("Localizations (" + entityModel.Localizations.length + ")");
-
-            $("#modalLocalization").modal("hide");
+            $("#tab-localizations").text("Localizations (" + entityModel.Localizations.length + ")");
         }
 
         function languageSelected() {
@@ -779,9 +859,11 @@
 
                 for (let i = 0; i < localizationProperties.length; i++) {
                     var row = "<tr>" +
-                        "<td>" + localizationProperties[i].Property +
-                        "</td><td>" + localizationProperties[i].Translation +
-                        "</td></tr>";
+                        "<td>" + localizationProperties[i].Property + "</td>" +
+                        "<td>" + localizationProperties[i].Translation + "</td>" +
+                        "<td><button class='btn btn-sm btn-outline-danger' onclick='removeLocalizationProperty(this)'>Remove</button></td>" +
+                        "</tr>";
+
                     $("#localizationTableProperties tbody").append(row);
                 }
             } else {
@@ -791,23 +873,22 @@
 
         function removeLocalization() {
             var localizationLanguage = $("#localizationLanguage").val();
+
+            if (localizationLanguage === '') {
+                showAlert("Invalid Language");
+                return;
+            }
+
             entityModel.Localizations = entityModel.Localizations.filter(l => l.Language !== localizationLanguage);
 
             clearLocalizationProperties();
+            $("#localizationLanguage").val("");
 
             if (entityModel.Localizations.length == 0) {
-                $("#Localizations").text("Localizations");
+                $("#tab-localizations").text("Localizations");
             } else {
-                $("#Localizations").text("Localizations (" + entityModel.Localizations.length + ")");
+                $("#tab-localizations").text("Localizations (" + entityModel.Localizations.length + ")");
             }
-
-            $("#modalLocalization").modal("hide");
-        }
-
-        function showLocalizationModal() {
-            localizationProperties = [];
-            $("#localizationLanguage").val("en");
-            $("#modalLocalization").modal("show");
         }
 
         // -- End Localization --
@@ -859,6 +940,7 @@
 
             entityModel.Name = $("#entityName").val();
             entityModel.Pluralized = $("#pluralizedName").val();
+            entityModel.RunMigrations = $("#switchMigrations").prop('checked');
 
             postMessageToHost('CreateEntity', entityModel);
         }
@@ -869,8 +951,8 @@
             $("#propertyName").val("");
             $("#propertyType").val("string");
             $("#propertySize").val("100");
-            $("#propertyIsRequired").val("No");
-            $("#propertyIsCollection").val("No");
+            $("#switchPropertyIsRequired").prop('checked', false);
+            $("#switchPropertyIsCollection").prop('checked', false);
             $("#tableProperties tbody").empty();
 
             entityModel = {
