@@ -165,27 +165,44 @@ public class AppServiceCreator(EntityModel entity) : BaseGenerator
 
         indentationLevel++;
 
-        foreach (var property in entity.Properties!)
-        {
-            if (property.Type != BaseTypeHelper.String)
-                continue;
+        var filteredProperties = entity.Properties!
+            .Where(p => p.Type == BaseTypeHelper.String)
+            .OrderBy(p => p.SearchIndex)
+            .ToList();
 
-            if (!whereif)
-                whereif = true;
-            else
-                builder.AppendLine();
+        if (filteredProperties.Count > 0)
+        {
+            var property = filteredProperties[0];
 
             builder
                 .Append(Indentation)
                 .Append(".WhereIf(!input.")
-                .Append($"{property.Name}")
+                .Append($"Search")
                 .Append(".IsNullOrWhiteSpace(), x => x.")
                 .Append($"{property.Name}!.Contains(")
-                .Append($"input.{property.Name}!))");
+                .Append($"input.Search!))");
+
+            for (int i = 1; i < filteredProperties.Count; i++)
+            {
+                property = filteredProperties[i];
+
+                if (!whereif)
+                    whereif = true;
+                else
+                    builder.AppendLine();
+
+                builder
+                    .AppendLine()
+                    .Append(Indentation)
+                    .Append(".WhereIf(!input.")
+                    .Append($"{property.Name}")
+                    .Append(".IsNullOrWhiteSpace(), x => x.")
+                    .Append($"{property.Name}!.Contains(")
+                    .Append($"input.{property.Name}!))");
+            }
         }
 
         builder
-            .Append(Indentation)
             .AppendLine(";");
 
         indentationLevel = 1;

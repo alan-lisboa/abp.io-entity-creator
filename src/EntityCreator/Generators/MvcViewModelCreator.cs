@@ -63,9 +63,17 @@ namespace EntityCreator.Generators
 
             indentationLevel++;
 
+            var searchProperty = entity.Properties!
+                .Where(p => p.Type == BaseTypeHelper.String)
+                .OrderBy(p => p.SearchIndex)
+                .FirstOrDefault();
+
             foreach (var property in entity.Properties!)
             {
                 if (property.IsCollection || BaseTypeHelper.IsEntityType(property.Type!))
+                    continue;
+
+                if (searchProperty != null && property.Index == searchProperty.Index)
                     continue;
 
                 builder

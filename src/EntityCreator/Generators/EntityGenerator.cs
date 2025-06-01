@@ -118,7 +118,7 @@ public class EntityGenerator
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = false
+                CreateNoWindow = true
             }
         };
 

@@ -10,7 +10,7 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
     public override bool Handle()
     {
         folder = $"{entity.Location}\\src\\{entity.Namespace}.Web\\Pages\\{entity.Pluralized}\\{entity.Name}";
-        
+
         CreateDirectory(folder);
 
         if (!CreatePage())
@@ -194,7 +194,7 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
         // body
         builder
             .AppendLine("<abp-card>");
-        
+
         indentationLevel++;
 
         builder
@@ -208,84 +208,95 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
             .AppendLine("<div class=\"d-flex\">");
 
         // Search
-        indentationLevel++;
+        var filteredProperties = entity.Properties!
+            .Where(p => p.Type == BaseTypeHelper.String)
+            .OrderBy(p => p.SearchIndex)
+            .ToList();
 
-        builder
-            .Append(Indentation)
-            .AppendLine("<div class=\"col\">");
+        if (filteredProperties.Count > 0)
+        {
+            indentationLevel++;
 
-        indentationLevel++;
+            builder
+                .Append(Indentation)
+                .AppendLine("<div class=\"col\">");
 
-        builder
-            .Append(Indentation)
-            .AppendLine("<div class=\"input-group\">");
+            indentationLevel++;
 
-        indentationLevel++;
+            builder
+                .Append(Indentation)
+                .AppendLine("<div class=\"input-group\">");
 
-        builder
-            .Append(Indentation)
-            .Append("<input class=\"form-control\" ")
-            .Append("placeholder=\"@L[\"Search\"].Value\"")
-            .Append($"id=\"{entity.Name}SearchText\"")
-            .AppendLine("type=\"search\">");
+            indentationLevel++;
 
-        builder
-            .Append(Indentation)
-            .Append("<button class=\"btn btn-primary\" ")
-            .Append("type=\"button\"")
-            .Append($"id=\"{entity.Name}SearchButton\" >")
-            .Append("<i class=\"fa fa-search\"></i>")
-            .AppendLine("</button>");
+            builder
+                .Append(Indentation)
+                .Append("<input class=\"form-control\" ")
+                .Append($"placeholder=\"@L[\"Search\"].Value\"")
+                .Append($"id=\"{entity.Name}SearchText\"")
+                .AppendLine("type=\"search\">");
 
-        indentationLevel --;
+            builder
+                .Append(Indentation)
+                .Append("<button class=\"btn btn-primary\" ")
+                .Append("type=\"button\"")
+                .Append($"id=\"{entity.Name}SearchButton\" >")
+                .Append("<i class=\"fa fa-search\"></i>")
+                .AppendLine("</button>");
 
-        builder
-            .Append(Indentation)
-            .AppendLine("</div>");
+            indentationLevel--;
 
-        indentationLevel--;
+            builder
+                .Append(Indentation)
+                .AppendLine("</div>");
 
-        builder
-            .Append(Indentation)
-            .AppendLine("</div>");
+            indentationLevel--;
 
-        // filter
-        builder
-            .Append(Indentation)
-            .AppendLine("<div class=\"col-auto ms-4\">");
+            builder
+                .Append(Indentation)
+                .AppendLine("</div>");
 
-        indentationLevel++;
+            if (filteredProperties.Count > 1)
+            {
+                // filter
+                builder
+                    .Append(Indentation)
+                    .AppendLine("<div class=\"col-auto ms-4\">");
 
-        builder
-            .Append(Indentation)
-            .AppendLine($"<abp-button abp-collapse-id=\"{entity.Name}Collapse\"");
+                indentationLevel++;
 
-        indentationLevel += 3;
+                builder
+                    .Append(Indentation)
+                    .AppendLine($"<abp-button abp-collapse-id=\"{entity.Name}Collapse\"");
 
-        builder
-            .Append(Indentation)
-            .AppendLine("button-type=\"Outline_Primary\"");
+                indentationLevel += 3;
 
-        builder
-            .Append(Indentation)
-            .AppendLine("icon=\"chevron-down\"");
+                builder
+                    .Append(Indentation)
+                    .AppendLine("button-type=\"Outline_Primary\"");
 
-        builder
-            .Append(Indentation)
-            .AppendLine("text=\"@L[\"Filter\"].Value\" />")
-            .AppendLine();
+                builder
+                    .Append(Indentation)
+                    .AppendLine("icon=\"chevron-down\"");
 
-        indentationLevel -= 4;
+                builder
+                    .Append(Indentation)
+                    .AppendLine("text=\"@L[\"Filter\"].Value\" />")
+                    .AppendLine();
 
-        builder
-            .Append(Indentation)
-            .AppendLine("</div>");
+                indentationLevel -= 4;
 
-        indentationLevel--;
+                builder
+                    .Append(Indentation)
+                    .AppendLine("</div>");
+            }
 
-        builder
-            .Append(Indentation)
-            .AppendLine("</div>");
+            indentationLevel--;
+
+            builder
+                .Append(Indentation)
+                .AppendLine("</div>");
+        }
 
         builder
             .Append(Indentation)
@@ -308,7 +319,7 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
             .AppendLine("<div class=\"mt-3\">");
 
         indentationLevel++;
-        
+
         builder
             .Append(Indentation)
             .AppendLine("<abp-form-content />");
@@ -353,7 +364,7 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
 
         builder
             .AppendLine("</abp-card>");
-        
+
         return WriteToFile(htmlPage);
     }
 
@@ -378,7 +389,7 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
 
         builder
             .AppendLine("public class IndexModel : PageModel");
-        
+
         builder
             .AppendLine("{");
 
@@ -474,6 +485,24 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
 
         builder
             .Append(Indentation)
+            .Append($"$(\"#{entity.Name}SearchText\").on('input', function ()")
+            .AppendLine(" {");
+
+        indentationLevel++;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("dataTable.ajax.reload();");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("});")
+            .AppendLine();
+
+        builder
+            .Append(Indentation)
             .AppendLine("var getFilter = function () {");
 
         indentationLevel++;
@@ -518,9 +547,30 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
 
         builder
             .Append(Indentation)
-            .AppendLine("})");
+            .AppendLine("})")
+            .AppendLine();
 
         indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .Append($"if ($(\"#{entity.Name}SearchText\").val() !== \"\") ")
+            .AppendLine("{");
+
+        indentationLevel++;
+        
+        builder
+            .Append(Indentation)
+            .Append("input.search = $(\"#")
+            .Append(entity.Name)
+            .AppendLine("SearchText\").val();");
+
+        indentationLevel--;
+
+        builder
+            .Append(Indentation)
+            .AppendLine("}")
+            .AppendLine();
 
         builder
             .Append(Indentation)
@@ -620,13 +670,13 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
             .AppendLine("rowAction: {");
 
         indentationLevel++;
-        
+
         builder
             .Append(Indentation)
             .AppendLine("items: [");
 
         // Edit Action
-        
+
         indentationLevel++;
 
         builder
@@ -649,7 +699,7 @@ public class MvcIndexPageCreator(EntityModel entity) : BaseGenerator
             .AppendLine("action: function (data) {");
 
         indentationLevel++;
-        
+
         builder
             .Append(Indentation)
             .AppendLine("editModal.open({ id: data.record.id });");
