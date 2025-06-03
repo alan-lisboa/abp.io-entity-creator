@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 
 <head>
     <meta charset="utf-8">
@@ -24,8 +24,8 @@
                     <div class="toast-body">
                         Alert.
                     </div>
-                    <button type="button" 
-                            class="btn-close btn-close-white me-2 m-auto" 
+                    <button type="button"
+                            class="btn-close btn-close-white me-2 m-auto"
                             data-bs-dismiss="toast"
                             aria-label="Close"></button>
                 </div>
@@ -106,7 +106,8 @@
     <!-- Main Page -->
     <div class="d-flex">
         <div class="col">
-            <img src="../images/logo-abp-dark.svg" class="img-fluid mb-3" alt="abp.io" />
+            <img src="../images/logo-abp-dark.svg" class="img-fluid mb-3 visually-hidden" alt="abp.io" />
+            <img src="../images/logo-abp-light.svg" class="img-fluid mb-3" alt="abp.io" />
         </div>
         <div class="col-auto">
             <div id="spinner" class="visually-hidden">
@@ -120,30 +121,29 @@
     <!-- Tabs -->
     <ul class="nav nav-underline">
         <li class="nav-item">
-            <a data-toggle="underline" 
-               class="nav-link active" 
-               data-bs-toggle="tab" 
-               data-bs-target="#home-pane" 
+            <a data-toggle="underline"
+               class="nav-link active"
+               data-bs-toggle="tab"
+               data-bs-target="#home-pane"
                id="tab-home">Home</a>
         </li>
         <li class="nav-item">
-            <a data-toggle="underline" 
-               class="nav-link" 
-               data-bs-toggle="tab" 
+            <a data-toggle="underline"
+               class="nav-link"
+               data-bs-toggle="tab"
                data-bs-target="#entity-pane"
                id="tab-entity">Entity Properties</a>
         </li>
         <li class="nav-item">
-            <a data-toggle="underline" 
-               class="nav-link" 
-               data-bs-toggle="tab" 
+            <a data-toggle="underline"
+               class="nav-link"
+               data-bs-toggle="tab"
                data-bs-target="#localizations-pane"
                id="tab-localizations">Localizations</a>
         </li>
     </ul>
 
     <div id="mainPage" class="form-horizontal m-3 mt-5 tab-content">
-
         <!-- Tab Home -->
         <div id="home-pane" class="tab-pane fade show active">
             <div class="row">
@@ -154,7 +154,7 @@
                             <input type="text" class="form-control" name="SolutionLocation" id="solutionLocation"
                                    readonly placeholder="Location for .sln file"
                                    aria-describedby="openSolutionLocation" />
-                            <button class="btn btn-outline-info" type="button" id="openSolutionLocation"
+                            <button class="btn btn-outline-secondary" type="button" id="openSolutionLocation"
                                     onclick="openSolutionFolder()">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
                                     <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
@@ -164,7 +164,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row mt-2">
+            <div class="row mt-4">
                 <div class="col-6">
                     <div class="form-group">
                         <label for="entityName" class="col-3 control-label">Entity Name</label>
@@ -183,15 +183,26 @@
                 </div>
             </div>
             <div class="row mt-4">
+                <div class="col-6">
+                    <label for="select-layout">Layout</label>
+                    <select class="form-select" aria-label="Common Layout" id="select-layout">
+                        <option selected>Common Layout</option>
+                        <option value="tabbed">Tabbed Layout</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-4">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="switchMigrations" checked>
                     <label class="form-check-label" for="switchMigrations">Run 'dotnet migrations' after creation</label>
                 </div>
             </div>
             <div class="row mt-5">
+            </div>
+            <div class="row mt-5">
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-primary ms-3" 
-                            name="create" 
+                    <button class="btn btn-primary ms-3"
+                            name="create"
                             value="Create"
                             id="create-entity"
                             onclick="createEntity()">
@@ -268,39 +279,37 @@
             <div class="row mt-3">
                 <div class="col-12">
                     <div class="float-end">
-                        <button class="btn btn-outline-secondary" 
-                                name="defineproperty" 
-                                id="defineProperty" 
+                        <button class="btn btn-outline-secondary"
+                                name="defineproperty"
+                                id="defineProperty"
                                 disabled>
                             Define property
                         </button>
-                        <button class="btn btn-outline-primary ms-3" 
-                                name="addproperty" 
+                        <button class="btn btn-outline-primary ms-3"
+                                name="addproperty"
                                 id="addproperty">
                             Add Property
                         </button>
                     </div>
                 </div>
             </div>
-            <div class="card bg-light mt-4">
-                <div class="card-body">
-                    <table class="table table-hover table-light mt-4" id="tableProperties">
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">Size</th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-group-divider">
-                            <tr>
-                                <td colspan="5" class="text-center">No property defined.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="row mt-4">
+                <table class="table table-hover mt-4" id="tableProperties">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Size</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr>
+                            <td colspan="5" class="text-center">No property defined.</td>
+                        </tr>
+                    </tbody>
+                </table>                
             </div>
         </div>
 
@@ -391,7 +400,6 @@
                 </div>
 
                 <div id="locale-pane-properties" class="tab-pane fade">
-
                     <div class="row mt-3">
                         <div class="col-5">
                             <label for="localizationPropertyName" class="control-label">Property</label>
@@ -419,28 +427,26 @@
                         </div>
                     </div>
 
-                    <div class="card bg-light mt-3">
-                        <div class="card-body">
-                            <table class="table table-hover table-light" id="localizationTableProperties">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Property</th>
-                                        <th scope="col">Translation</th>
-                                        <th scope="col">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="table-group-divider">
-                                    <tr>
-                                        <td colspan="3" class="text-center">No property defined.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="row mt-4">
+                        <table class="table table-hover" id="localizationTableProperties">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Property</th>
+                                    <th scope="col">Translation</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-group-divider">
+                                <tr>
+                                    <td colspan="3" class="text-center">No property defined.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <div class="d-flex mt-3 justify-content-end">
+            <div class="d-flex mt-5 justify-content-end">
                 <button type="button" class="btn btn-danger" onclick="removeLocalization()">Remove</button>
                 <button type="button" class="btn btn-primary ms-3" onclick="saveLocalization()">Save changes</button>
             </div>
