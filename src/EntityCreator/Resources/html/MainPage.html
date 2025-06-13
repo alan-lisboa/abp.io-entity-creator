@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8">
@@ -15,6 +15,17 @@
 </head>
 
 <body class="m-4">
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="bi-sun" fill="currentColor" class="bi bi-sun" viewBox="0 0 16 16">
+            <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708" />
+        </symbol>
+        <symbol id="bi-moon" fill="currentColor" class="bi bi-moon" viewBox="0 0 16 16">
+            <path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286" />
+        </symbol>
+        <symbol id="bi-three-dots" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
+            <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"></path>
+        </symbol>
+    </svg>
     <!-- Alert -->
     <div aria-live="polite" aria-atomic="true" class="position-relative">
         <div class="toast-container top-0 end-0 p-3">
@@ -106,10 +117,20 @@
     <!-- Main Page -->
     <div class="d-flex">
         <div class="col">
-            <img src="../images/logo-abp-dark.svg" class="img-fluid mb-3 visually-hidden" alt="abp.io" />
-            <img src="../images/logo-abp-light.svg" class="img-fluid mb-3" alt="abp.io" />
+            <img id="logo-dark" src="../images/logo-abp-dark.svg" class="img-fluid mb-3 visually-hidden" alt="abp.io" />
+            <img id="logo-light" src="../images/logo-abp-light.svg" class="img-fluid mb-3 visually-hidden" alt="abp.io" />
         </div>
         <div class="col-auto">
+            <div class="btn-group btn-group-sm" role="group" arial-label="Theme">
+                <input type="radio" class="btn-check" name="btn-theme" id="btn-light" autocomplete="off" checked>
+                <label class="btn btn-outline-primary pt-0 pb-1" for="btn-light">
+                    <svg height="14" width="14"><use href="#bi-sun"></use></svg>
+                </label>
+                <input type="radio" class="btn-check" name="btn-theme" id="btn-dark" autocomplete="off">
+                <label class="btn btn-outline-primary pt-0 pb-1" for="btn-dark">
+                    <svg height="14" width="14"><use href="#bi-moon"></use></svg>
+                </label>
+            </div>
             <div id="spinner" class="visually-hidden">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -156,9 +177,7 @@
                                    aria-describedby="openSolutionLocation" />
                             <button class="btn btn-outline-secondary" type="button" id="openSolutionLocation"
                                     onclick="openSolutionFolder()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
-                                    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
-                                </svg>
+                                <svg width="16" height="16"><use href="#bi-three-dots"></use></svg>
                             </button>
                         </div>
                     </div>
@@ -193,10 +212,17 @@
             </div>
             <div class="row mt-4">
                 <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="switchNonModal">
+                    <label class="form-check-label" for="switchNonModal">Non-Modal for edit e insert actions</label>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="switchMigrations" checked>
                     <label class="form-check-label" for="switchMigrations">Run 'dotnet migrations' after creation</label>
                 </div>
             </div>
+
             <div class="row mt-5">
             </div>
             <div class="row mt-5">
@@ -993,6 +1019,28 @@
             showSuccess("Entity Created with success!");
         }
 
+        function loadTheme(theme) {
+
+            if (!theme) {
+                const urlParams = new URLSearchParams(window.location.search);
+                theme = urlParams.get('theme');
+            }
+
+            if (!theme)
+                theme = "light";
+
+            $("html").attr("data-bs-theme", theme);
+
+            $("#logo-dark").addClass("visually-hidden");
+            $("#logo-light").addClass("visually-hidden");
+
+            if (theme === "light") {
+                $("#logo-dark").removeClass("visually-hidden");
+            } else {
+                $("#logo-light").removeClass("visually-hidden");
+            }
+        }
+
         $(document).ready(function () {
             $("#addproperty").click(() => addProperty());
             $("#propertyType").change(() => changePropertyType());
@@ -1000,6 +1048,10 @@
             $("#addEntityProperty").click(() => addEntityProperty());
             $("#addLocalizationProperty").click(() => addLocalizationProperty());
             $("#localizationLanguage").change(() => languageSelected());
+            $("#btn-light").click(() => loadTheme("light"));
+            $("#btn-dark").click(() => loadTheme("dark"));
+
+            loadTheme();
         });
 
         // -- End General Section --

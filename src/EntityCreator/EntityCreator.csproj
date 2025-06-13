@@ -6,12 +6,8 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>abp.io.ico</ApplicationIcon>
+    <ApplicationIcon>abp.io-light.ico</ApplicationIcon>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="abp.io.ico" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Humanizer" Version="2.14.1" />
