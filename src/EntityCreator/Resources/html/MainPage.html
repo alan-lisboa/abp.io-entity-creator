@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="dark">
 
 <head>
     <meta charset="utf-8">
@@ -961,6 +961,18 @@
             showAlert(data.Message);
         }
 
+        function loadSettings(data) {
+            var json = JSON.parse(data);
+
+            loadTheme(json.Theme);
+
+            entityModel.Location = json.Location;
+            entityModel.ProjectName = json.ProjectName;
+            entityModel.Namespace = json.Namespace;
+
+            $("#solutionLocation").val(json.Location);
+        }
+
         function createEntity() {
             $("#solutionLocation").removeClass("is-invalid");
             $("#entityName").removeClass("is-invalid");
@@ -1020,14 +1032,8 @@
         }
 
         function loadTheme(theme) {
-
-            if (!theme) {
-                const urlParams = new URLSearchParams(window.location.search);
-                theme = urlParams.get('theme');
-            }
-
             if (!theme)
-                theme = "light";
+                theme = "dark";
 
             $("html").attr("data-bs-theme", theme);
 
@@ -1036,9 +1042,13 @@
 
             if (theme === "light") {
                 $("#logo-dark").removeClass("visually-hidden");
+                $("#btn-light").prop("checked", true);
             } else {
                 $("#logo-light").removeClass("visually-hidden");
+                $("#btn-dark").prop("checked", true);
             }
+
+            postMessageToHost('SaveTheme', theme);
         }
 
         $(document).ready(function () {
@@ -1051,7 +1061,7 @@
             $("#btn-light").click(() => loadTheme("light"));
             $("#btn-dark").click(() => loadTheme("dark"));
 
-            loadTheme();
+            postMessageToHost('GetSettings');
         });
 
         // -- End General Section --
@@ -1074,7 +1084,11 @@
             }
 
             if (message.Command == 'EntityCreateFailed') {
-                showCreationEntityFailed(message.payload);
+                showCreationEntityFailed(message.Payload);
+            }
+
+            if (message.Command == 'LoadSettings') {
+                loadSettings(message.Payload);
             }
         })
 

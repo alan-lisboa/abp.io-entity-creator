@@ -1,4 +1,6 @@
-﻿using Microsoft.Web.WebView2.Core;
+﻿using EntityCreator.Models;
+using Microsoft.Web.WebView2.Core;
+using PeanutButter.INI;
 using System.Text.Json;
 
 namespace EntityCreator.Forms
@@ -17,9 +19,10 @@ namespace EntityCreator.Forms
         {
             string page = string.Format("{0}Resources/html/MainPage.html",
                 AppDomain.CurrentDomain.BaseDirectory);
-
+            
             await webView2.EnsureCoreWebView2Async(null);
             webView2.Source = new Uri(page);
+
 
             webView2.WebMessageReceived += WebView2_WebMessageReceived;
         }
