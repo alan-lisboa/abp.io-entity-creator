@@ -18,12 +18,3 @@ You can also configure a child entity (ValueObject or Entity) by clicking the "D
 
 ![screenshot 2](./assets/img/screenshot_2.png)
 
-<script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
-<script>
-  kofiWidgetOverlay.draw('alanlisboa', {
-    'type': 'floating-chat',
-    'floating-chat.donateButton.text': 'Donate',
-    'floating-chat.donateButton.background-color': '#00b9fe',
-    'floating-chat.donateButton.text-color': '#fff'
-  });
-</script>
