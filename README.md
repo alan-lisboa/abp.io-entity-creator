@@ -18,3 +18,4 @@ You can also configure a child entity (ValueObject or Entity) by clicking the "D
 
 ![screenshot 2](./assets/img/screenshot_2.png)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/V7V81GM5MD)
