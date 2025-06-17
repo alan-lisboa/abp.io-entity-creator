@@ -19,3 +19,5 @@ You can also configure a child entity (ValueObject or Entity) by clicking the "D
 ![screenshot 2](./assets/img/screenshot_2.png)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/V7V81GM5MD)
+
+<iframe id='kofiframe' src='https://ko-fi.com/alanlisboa/?hidefeed=true&widget=true&embed=true&preview=true' style='border:none;width:100%;padding:4px;background:#f9f9f9;' height='712' title='alanlisboa'></iframe>
